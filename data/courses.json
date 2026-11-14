@@ -43,7 +43,7 @@
     "resource_type": "course",
     "level": "Beginner",
     "is_remedial": false,
-    "prerequisites": ["JavaScript"]
+    "prerequisites": ["HTML", "CSS", "JavaScript"]
   },
   {
     "id": "react-tutorial-1",
@@ -136,7 +136,7 @@
     "resource_type": "tutorial",
     "level": "Intermediate",
     "is_remedial": false,
-    "prerequisites": ["rest-course-1"]
+    "prerequisites": ["rest-course-1", "Node.js"]
   },
   {
     "id": "rest-exercise-1",

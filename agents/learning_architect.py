@@ -1,25 +1,38 @@
 """
 Learning Architect Agent
-Boundary: Constructs a structured, prerequisite-ordered learning roadmap based on skill gaps.
-Input: {
+Boundary: Constructs structured, prerequisite-ordered learning roadmaps based on skill gaps
+          and adapts active roadmaps with targeted remedial resources upon assessment evaluation.
+Input (Roadmap Generation): {
     "missing_skills": [str],
     "weak_skills": [str],
     "courses_catalog": [dict],
     "learner_levels": {str: str},
-    "completed_items": [str],  # resource titles already completed
-    "remedial_skills": [str]   # skills that require remedial resources
+    "completed_items": [str],
+    "remedial_skills": [str]
 }
-Output: {
-    "roadmap": [
-        {
-            "position": int,
-            "skill": str,
-            "resource_title": str,
-            "resource_type": str,
-            "is_remedial": bool
-        }
-    ]
+Input (Assessment Remedial Adaptation): {
+    "action": "adapt_remedial",
+    "assessment_result": {
+        "score": float,
+        "passed": bool,
+        "weak_concepts": [str],
+        "validated_level": Optional[str],
+        "needs_roadmap_update": bool
+    },
+    "skill": str,
+    "courses_catalog": [dict],
+    "current_roadmap": [dict],
+    "completed_items": [str]
 }
+Output:
+    Roadmap Generation: {"roadmap": [{position, skill, resource_title, resource_type, is_remedial}]}
+    Remedial Adaptation: {
+        "adapted": bool,
+        "remedial_resources_selected": list,
+        "shift_positions_by": int,
+        "remedial_added_titles": list,
+        "summary": str
+    }
 """
 
 from typing import Any, Dict, List, Set
@@ -31,6 +44,79 @@ class LearningArchitect(BaseAgent):
         super().__init__(name="Learning Architect")
 
     def run(self, input_dict: Dict[str, Any]) -> Dict[str, Any]:
+        # Branch 1: Assessment Remedial Adaptation Workflow
+        if input_dict.get("action") == "adapt_remedial" or "assessment_result" in input_dict:
+            return self._adapt_remedial_roadmap(input_dict)
+
+        # Branch 2: Standard Full Roadmap Generation
+        return self._generate_full_roadmap(input_dict)
+
+    def _adapt_remedial_roadmap(self, input_dict: Dict[str, Any]) -> Dict[str, Any]:
+        assessment_result = input_dict.get("assessment_result", {})
+        skill = input_dict.get("skill", "")
+        courses_catalog = input_dict.get("courses_catalog", [])
+        current_roadmap = input_dict.get("current_roadmap", [])
+        completed_titles = set(input_dict.get("completed_items", []))
+
+        score = assessment_result.get("score", 100.0)
+        needs_update = assessment_result.get("needs_roadmap_update", False)
+        weak_concepts = assessment_result.get("weak_concepts", [])
+
+        # Remedial resources are required when score < 50%
+        if score >= 50.0 and not needs_update:
+            return {
+                "adapted": False,
+                "remedial_resources_selected": [],
+                "shift_positions_by": 0,
+                "remedial_added_titles": [],
+                "summary": f"Score {score}% satisfies minimum threshold. No remedial injection required.",
+            }
+
+        # Find existing active titles to avoid duplicate remedial entries
+        existing_active_titles = {
+            item.get("resource_title") for item in current_roadmap
+            if not item.get("archived", False)
+        }
+
+        # Learning Architect selects matching remedial courses for the assessed skill
+        candidate_remedials = [
+            c for c in courses_catalog
+            if c.get("skill") == skill
+            and c.get("is_remedial") is True
+            and c.get("title") not in completed_titles
+            and c.get("title") not in existing_active_titles
+        ]
+
+        if not candidate_remedials:
+            return {
+                "adapted": False,
+                "remedial_resources_selected": [],
+                "shift_positions_by": 0,
+                "remedial_added_titles": [],
+                "summary": f"No new remedial resources needed or all already active/completed for {skill}.",
+            }
+
+        # Prepare selected remedial items with top positions (starting at position 1)
+        selected = []
+        for idx, course in enumerate(candidate_remedials, start=1):
+            selected.append({
+                "position": idx,
+                "skill": course.get("skill", skill),
+                "resource_title": course.get("title"),
+                "resource_type": course.get("resource_type", "tutorial"),
+                "is_remedial": True,
+            })
+
+        titles = [item["resource_title"] for item in selected]
+        return {
+            "adapted": True,
+            "remedial_resources_selected": selected,
+            "shift_positions_by": len(selected),
+            "remedial_added_titles": titles,
+            "summary": f"Selected {len(selected)} remedial resource(s) at position #1 for {skill} targeting weak concepts: {weak_concepts}.",
+        }
+
+    def _generate_full_roadmap(self, input_dict: Dict[str, Any]) -> Dict[str, Any]:
         missing_skills = set(input_dict.get("missing_skills", []))
         weak_skills = set(input_dict.get("weak_skills", []))
         courses_catalog = input_dict.get("courses_catalog", [])
@@ -38,83 +124,100 @@ class LearningArchitect(BaseAgent):
         completed_titles = set(input_dict.get("completed_items", []))
         remedial_skills = set(input_dict.get("remedial_skills", []))
 
+        # Only recommend resources for missing or weak skills
         target_skills = missing_skills.union(weak_skills)
 
-        # 1. Filter out already completed resources
+        # Lookup mapping of catalog courses by ID
+        courses_by_id = {c["id"]: c for c in courses_catalog}
+
+        # Candidate courses: must be for target skills, not already completed, not remedial
         candidate_courses = [
             c for c in courses_catalog
-            if c.get("title") not in completed_titles
+            if c.get("skill") in target_skills
+            and c.get("title") not in completed_titles
+            and not c.get("is_remedial", False)
         ]
 
-        # 2. Separate remedial resources for skills requiring remediation
-        remedial_items: List[Dict[str, Any]] = []
-        normal_items: List[Dict[str, Any]] = []
+        # Separate any requested remedial resources
+        remedial_items: List[Dict[str, Any]] = [
+            c for c in courses_catalog
+            if c.get("skill") in remedial_skills
+            and c.get("is_remedial", True)
+            and c.get("title") not in completed_titles
+        ]
 
-        for c in candidate_courses:
-            skill = c.get("skill")
-            if skill not in target_skills:
-                continue
-
-            is_rem = c.get("is_remedial", False)
-            if is_rem:
-                # Include remedial only if skill is in remedial_skills
-                if skill in remedial_skills:
-                    remedial_items.append(c)
-            else:
-                normal_items.append(c)
-
-        # 3. Order normal courses by prerequisite dependencies and level
-        # Level sort weight
+        # Foundational domain order (tie-breaker when multiple courses have ready prerequisites)
+        # Guarantees foundational web markups & core languages precede dependent libraries/runtimes
+        foundation_order = {
+            "HTML": 1,
+            "CSS": 2,
+            "JavaScript": 3,
+            "React": 4,
+            "Node.js": 5,
+            "REST APIs": 6,
+            "Python": 1,
+            "SQL": 2,
+            "Statistics": 3,
+            "Pandas": 4,
+            "Machine Learning": 5,
+        }
         level_weight = {"Beginner": 1, "Intermediate": 2, "Advanced": 3}
-        
-        # Determine satisfied prerequisites
+
+        # Track satisfied skills and satisfied course IDs
         satisfied_skills: Set[str] = {
             s for s, lvl in learner_levels.items()
             if lvl in ("Intermediate", "Advanced")
         }
-        satisfied_course_ids: Set[str] = set()
+        satisfied_course_ids: Set[str] = {
+            c["id"] for c in courses_catalog
+            if c.get("title") in completed_titles
+        }
 
-        # Multi-pass dependency resolution
+        # Topological dependency resolution loop
         ordered_normal: List[Dict[str, Any]] = []
-        remaining = list(normal_items)
-        
-        # Sort remaining by level initially
-        remaining.sort(key=lambda x: level_weight.get(x.get("level", "Beginner"), 1))
+        remaining = list(candidate_courses)
 
-        # We allow up to len(remaining) passes to resolve prereqs
-        progress = True
-        while remaining and progress:
-            progress = False
-            unmet = []
-            for course in remaining:
-                prereqs = course.get("prerequisites", [])
+        while remaining:
+            # Find all candidate courses whose prerequisites are completely satisfied
+            ready = []
+            for c in remaining:
+                prereqs = c.get("prerequisites", [])
                 can_take = True
                 for p in prereqs:
-                    # Prereq can be a skill or a course ID
-                    if p in courses_catalog:  # course id
+                    if p in courses_by_id:
+                        # Course-level prerequisite
                         if p not in satisfied_course_ids:
                             can_take = False
                             break
                     else:
-                        # skill name
+                        # Skill-level prerequisite
                         if p not in satisfied_skills:
                             can_take = False
                             break
-
                 if can_take:
-                    ordered_normal.append(course)
-                    satisfied_course_ids.add(course.get("id"))
-                    satisfied_skills.add(course.get("skill"))
-                    progress = True
-                else:
-                    unmet.append(course)
-            remaining = unmet
+                    ready.append(c)
 
-        # Append any remaining courses whose prereqs might be unmet in catalog
-        # to ensure learner has complete guidance
-        ordered_normal.extend(remaining)
+            if not ready:
+                # Fallback if circular dependency or unresolved external prereq
+                ready = [remaining[0]]
 
-        # 4. Construct final roadmap: Remedial resources come FIRST!
+            # Sort ready candidates: foundational skills first, beginner levels first, then courses before exercises
+            ready.sort(key=lambda x: (
+                foundation_order.get(x.get("skill"), 99),
+                level_weight.get(x.get("level", "Beginner"), 1),
+                1 if x.get("resource_type") == "course" else (2 if x.get("resource_type") == "tutorial" else 3)
+            ))
+
+            # Schedule the top candidate
+            next_course = ready[0]
+            ordered_normal.append(next_course)
+            remaining.remove(next_course)
+
+            # Satisfy this course and its skill for subsequent dependent milestones
+            satisfied_course_ids.add(next_course["id"])
+            satisfied_skills.add(next_course["skill"])
+
+        # Remedial resources come FIRST if any were specifically requested
         all_ordered = remedial_items + ordered_normal
 
         roadmap = []

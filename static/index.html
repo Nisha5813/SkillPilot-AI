@@ -12,403 +12,737 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
 
-  <!-- Header -->
-  <header class="bg-indigo-900 text-white shadow-md border-b border-indigo-700">
-    <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-      <div>
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center font-black text-xl shadow">
-            SP
+  <!-- Application Header & Navigation Bar -->
+  <header class="bg-indigo-900 text-white shadow-md border-b border-indigo-700 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3 cursor-pointer select-none" id="header-brand-link">
+        <div class="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center font-black text-xl shadow text-white">
+          SP
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight">SKILLPILOT AI</h1>
+            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-indigo-800 text-indigo-200 border border-indigo-600">
+              Multi-Agent
+            </span>
           </div>
-          <div>
-            <h1 class="text-2xl font-bold tracking-tight">SKILLPILOT AI</h1>
-            <p class="text-indigo-200 text-xs sm:text-sm font-medium">
-              Understand Your Skills. Discover Your Gaps. Navigate Your Career.
-            </p>
-          </div>
+          <p class="text-indigo-200 text-xs font-medium hidden sm:block">
+            Understand Your Skills. Discover Your Gaps. Navigate Your Career.
+          </p>
         </div>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-800 text-indigo-200 border border-indigo-600">
-          Solo Hackathon (Promptwar)
-        </span>
-        <button id="btn-quick-demo" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow transition">
-          Auto-Fill Demo Student
-        </button>
+
+      <!-- Navigation & Auth Controls -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+
+        <!-- Guest Controls (Shown when unauthenticated) -->
+        <div id="nav-guest-actions" class="flex items-center gap-2">
+          <button id="btn-nav-demo" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow transition flex items-center gap-1.5">
+            <span>⚡ Instant Demo</span>
+          </button>
+          <button id="btn-nav-login" class="bg-indigo-800 hover:bg-indigo-700 text-white border border-indigo-600 px-3 py-1.5 rounded-md text-xs font-semibold transition">
+            Sign In
+          </button>
+          <button id="btn-nav-signup" class="bg-white hover:bg-slate-100 text-indigo-900 px-3.5 py-1.5 rounded-md text-xs font-bold shadow transition">
+            Sign Up
+          </button>
+        </div>
+
+        <!-- Authenticated User Controls (Shown when authenticated) -->
+        <div id="nav-user-actions" class="hidden flex items-center gap-2 sm:gap-3">
+          <div class="flex items-center gap-2 bg-indigo-800/80 border border-indigo-700 px-3 py-1 rounded-full text-xs">
+            <div id="nav-user-avatar" class="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-[10px]">
+              U
+            </div>
+            <span id="nav-user-email" class="font-medium text-indigo-100 max-w-[150px] sm:max-w-[200px] truncate">user@example.com</span>
+          </div>
+          <button id="btn-nav-dashboard" class="bg-indigo-700 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow transition">
+            Dashboard
+          </button>
+          <button id="btn-nav-logout" class="bg-rose-700 hover:bg-rose-600 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow transition flex items-center gap-1">
+            <span>Sign Out</span>
+          </button>
+        </div>
+
       </div>
+
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+  <!-- Main View Area -->
+  <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
 
-    <!-- Active Learner Banner -->
-    <div id="active-learner-banner" class="hidden bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
-          <span id="banner-avatar">DS</span>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h2 id="banner-name" class="font-bold text-slate-900 text-lg">Demo Student</h2>
-            <span id="banner-role-badge" class="px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800">Full Stack Developer</span>
+    <!-- =================================================================== -->
+    <!-- VIEW 1: WELCOME / LANDING PAGE                                      -->
+    <!-- =================================================================== -->
+    <div id="view-welcome" class="space-y-12 animate-fade-in">
+
+      <!-- Hero Banner -->
+      <section class="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 rounded-2xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden border border-indigo-700">
+        <div class="relative z-10 max-w-3xl space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-800/80 border border-indigo-500/50 text-indigo-200 text-xs font-semibold">
+            <span>✨</span> Autonomous Multi-Agent Learning Navigation
           </div>
-          <p id="banner-sub" class="text-xs text-slate-500">Learner ID: #1 | Education: B.S. Computer Science</p>
+          <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-white">
+            Turn Career Ambitions Into Actionable, Step-by-Step Milestones.
+          </h1>
+          <p class="text-indigo-200 text-sm sm:text-base leading-relaxed">
+            SkillPilot AI evaluates your real competencies, computes precise skill gaps against industry benchmarks, dynamically sequences foundational prerequisite learning paths, and injects remedial assistance the instant you need it.
+          </p>
+          <div class="pt-2 flex items-center gap-3 flex-wrap">
+            <button id="hero-btn-get-started" class="bg-emerald-500 hover:bg-emerald-400 text-indigo-950 font-bold px-6 py-3 rounded-lg text-sm shadow-lg transition flex items-center gap-2">
+              <span>Get Started Free</span> &rarr;
+            </button>
+            <button id="hero-btn-login" class="bg-indigo-700 hover:bg-indigo-600 text-white font-semibold px-5 py-3 rounded-lg text-sm transition border border-indigo-500">
+              Sign In to Your Account
+            </button>
+            <button id="hero-btn-demo" class="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-3 rounded-lg text-sm transition border border-white/20">
+              ⚡ Instant Demo Preview
+            </button>
+          </div>
         </div>
-      </div>
-      
-      <!-- Career Switch Widget -->
-      <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
-        <label for="switch-role-select" class="text-xs font-semibold text-slate-600">Career Pivot:</label>
-        <select id="switch-role-select" class="text-xs border border-slate-300 rounded px-2 py-1 bg-white focus:ring-1 focus:ring-indigo-500">
-          <!-- Populated dynamically -->
-        </select>
-        <button id="btn-switch-role" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1 rounded shadow transition">
-          Switch Goal
-        </button>
+      </section>
+
+      <!-- 5 Specialized Multi-Agent Highlight -->
+      <section class="space-y-6">
+        <div class="text-center max-w-2xl mx-auto space-y-2">
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">The 5-Agent Collaborative Engine</h2>
+          <p class="text-xs sm:text-sm text-slate-600">
+            A specialized multi-agent workflow coordinates evaluation, curriculum structuring, and real-time guidance.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <!-- Agent 1 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">
+              🔍
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">Skill Analyst</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Audits baseline competencies and classifies skills into missing, weak, transferable, and verified strong.
+            </p>
+          </div>
+
+          <!-- Agent 2 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
+              🏗️
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">Learning Architect</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Dynamically resolves prerequisite graphs so foundational courses always precede advanced subjects.
+            </p>
+          </div>
+
+          <!-- Agent 3 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
+              🎯
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">Assessment Engine</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Administers targeted knowledge evaluations and triggers automated remedial updates when scores fall under 50%.
+            </p>
+          </div>
+
+          <!-- Agent 4 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-lg">
+              🧭
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">Career Mentor</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Provides contextual feedback, personalized advice for interviews, and answers technical career questions.
+            </p>
+          </div>
+
+          <!-- Agent 5 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg">
+              📊
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">Progress Evaluator</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Calculates objective readiness scores, unlocks validated levels, and safeguards historical achievements.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Key Capabilities Grid -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="inline-flex p-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-base">
+            📐 Prerequisite-First Roadmaps
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">Topologically Ordered Steps</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            No jumping into React before understanding HTML/CSS and JavaScript fundamentals. Every curriculum is dynamically sequenced based on actual prerequisite catalogs.
+          </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="inline-flex p-2.5 rounded-lg bg-red-50 text-red-700 font-bold text-base">
+            🚨 Immediate Remedial Roadblocks
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">Autonomous Adaptation</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            When an assessment score is under 50%, Progress Evaluator and Learning Architect immediately intervene, placing a targeted remedial review at the top of your roadmap.
+          </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="inline-flex p-2.5 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-base">
+            🔄 Safe Career Switching
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">Preserved Historical Records</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Pivot from Full Stack Developer to Data Scientist anytime. Completed activities and assessments stay preserved, while previous incomplete goals are archived safely.
+          </p>
+        </div>
+      </section>
+
+      <!-- Bottom CTA Banner -->
+      <section class="bg-slate-900 rounded-2xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-md border border-slate-800">
+        <div>
+          <h3 class="text-xl font-bold">Ready to navigate your career with AI?</h3>
+          <p class="text-slate-400 text-xs sm:text-sm mt-1">Create your learner account in seconds or try the instant live demo.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="cta-btn-signup" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-lg text-xs sm:text-sm shadow transition">
+            Create Free Account
+          </button>
+          <button id="cta-btn-demo" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold px-4 py-2.5 rounded-lg text-xs sm:text-sm transition">
+            Launch Demo
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- VIEW 2: LOGIN PAGE                                                  -->
+    <!-- =================================================================== -->
+    <div id="view-login" class="max-w-md mx-auto my-6 hidden animate-fade-in">
+      <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-8 space-y-6">
+
+        <div class="text-center space-y-2">
+          <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white font-black text-2xl flex items-center justify-center mx-auto shadow">
+            SP
+          </div>
+          <h2 class="text-2xl font-bold text-slate-900">Welcome Back</h2>
+          <p class="text-xs text-slate-500">Sign in to access your personalized learning dashboard.</p>
+        </div>
+
+        <!-- Error Message Alert -->
+        <div id="login-error-alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-semibold"></div>
+
+        <form id="form-login" class="space-y-4">
+          <div>
+            <label for="login-email" class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="login-email" required placeholder="you@example.com"
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <div>
+            <label for="login-password" class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+            <input type="password" id="login-password" required placeholder="••••••••"
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <button type="submit" id="btn-login-submit"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-2.5 rounded-lg shadow transition flex items-center justify-center gap-2">
+            <span>Sign In</span> &rarr;
+          </button>
+        </form>
+
+        <div class="border-t border-slate-100 pt-4 text-center space-y-2">
+          <p class="text-xs text-slate-600">
+            Don't have an account?
+            <button id="btn-goto-signup" class="text-indigo-600 font-bold hover:underline">Create one</button>
+          </p>
+          <button id="btn-login-back-home" class="text-xs text-slate-400 hover:text-slate-700 transition block mx-auto">
+            &larr; Back to Welcome Page
+          </button>
+        </div>
+
       </div>
     </div>
 
-    <!-- Section 1: Profile Creation Form (Hidden once created) -->
-    <section id="section-create-profile" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-      <div class="border-b border-slate-100 pb-4 mb-6">
-        <h2 class="text-lg font-bold text-slate-900">1. Student Profile & Baseline Skills</h2>
-        <p class="text-xs text-slate-500">Enter your background and self-reported skills to begin multi-agent career mapping.</p>
-      </div>
 
-      <form id="form-create-learner" class="space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
-            <input type="text" id="input-name" required value="Demo Student" placeholder="e.g. Alex Johnson"
-              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    <!-- =================================================================== -->
+    <!-- VIEW 3: SIGN UP PAGE                                                -->
+    <!-- =================================================================== -->
+    <div id="view-signup" class="max-w-md mx-auto my-6 hidden animate-fade-in">
+      <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-8 space-y-6">
+
+        <div class="text-center space-y-2">
+          <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white font-black text-2xl flex items-center justify-center mx-auto shadow">
+            SP
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Education Background</label>
-            <input type="text" id="input-education" value="B.S. Computer Science" placeholder="e.g. Self-taught, B.S. CS"
-              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Target Career Goal</label>
-            <select id="select-target-role" required
-              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <!-- Populated via API -->
-            </select>
-          </div>
+          <h2 class="text-2xl font-bold text-slate-900">Create Your Account</h2>
+          <p class="text-xs text-slate-500">Start discovering your skill gaps and navigating your career.</p>
         </div>
 
+        <!-- Error Message Alert -->
+        <div id="signup-error-alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-semibold"></div>
+
+        <form id="form-signup" class="space-y-4">
+          <div>
+            <label for="signup-name" class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+            <input type="text" id="signup-name" required placeholder="Alex Johnson"
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <div>
+            <label for="signup-email" class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="signup-email" required placeholder="alex@example.com"
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <div>
+            <label for="signup-password" class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+            <input type="password" id="signup-password" required placeholder="Minimum 8 characters"
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <p class="text-[11px] text-slate-400 mt-1">Must be at least 8 characters with numbers or symbols.</p>
+          </div>
+
+          <div>
+            <label for="signup-password-confirm" class="block text-xs font-semibold text-slate-700 mb-1">Confirm Password</label>
+            <input type="password" id="signup-password-confirm" required placeholder="Re-enter password"
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <button type="submit" id="btn-signup-submit"
+            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm py-2.5 rounded-lg shadow transition flex items-center justify-center gap-2">
+            <span>Create Account</span> &rarr;
+          </button>
+        </form>
+
+        <div class="border-t border-slate-100 pt-4 text-center space-y-2">
+          <p class="text-xs text-slate-600">
+            Already have an account?
+            <button id="btn-goto-login" class="text-indigo-600 font-bold hover:underline">Sign In</button>
+          </p>
+          <button id="btn-signup-back-home" class="text-xs text-slate-400 hover:text-slate-700 transition block mx-auto">
+            &larr; Back to Welcome Page
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- VIEW 4: FIRST-TIME LEARNER PROFILE SETUP                            -->
+    <!-- =================================================================== -->
+    <div id="view-profile-setup" class="hidden max-w-4xl mx-auto animate-fade-in space-y-6">
+
+      <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-5 flex items-start gap-4">
+        <div class="text-3xl">🚀</div>
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-xs font-semibold text-slate-700">Self-Reported Current Skills</label>
-            <button type="button" id="btn-add-skill-row" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
-              + Add Another Skill
-            </button>
-          </div>
-          <div id="skills-rows-container" class="space-y-2">
-            <!-- Default pre-loaded rows matching sample scenario -->
-            <div class="skill-row flex items-center gap-3">
-              <input type="text" placeholder="Skill (e.g. Python)" value="Python" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
-              <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate" selected>Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
-              <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
-            </div>
-            <div class="skill-row flex items-center gap-3">
-              <input type="text" placeholder="Skill (e.g. SQL)" value="SQL" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
-              <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate" selected>Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
-              <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
-            </div>
-            <div class="skill-row flex items-center gap-3">
-              <input type="text" placeholder="Skill (e.g. HTML)" value="HTML" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
-              <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
-                <option value="Beginner" selected>Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
-              <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="pt-2 flex justify-end">
-          <button type="submit" id="btn-submit-profile" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow transition flex items-center gap-2">
-            <span>Analyze Gaps & Generate Roadmap</span> &rarr;
-          </button>
-        </div>
-      </form>
-    </section>
-
-    <!-- Dashboard Content (Visible after creation) -->
-    <div id="dashboard-content" class="space-y-8 hidden">
-
-      <!-- Mentor Alert Banner -->
-      <div id="mentor-box" class="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-l-4 border-indigo-600 p-4 rounded-xl shadow-sm">
-        <div class="flex items-start justify-between gap-3">
-          <div class="flex items-start gap-3">
-            <span class="text-2xl">🤖</span>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-sm font-bold text-slate-900">Career Mentor Guidance</h3>
-                <span id="mentor-source-badge" class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 border border-indigo-200">template</span>
-              </div>
-              <p id="mentor-text" class="text-xs sm:text-sm text-slate-700 mt-1 leading-relaxed">
-                Loading mentorship insights...
-              </p>
-            </div>
-          </div>
-        </div>
-        <!-- Ask Mentor Input -->
-        <div class="mt-3 pt-3 border-t border-indigo-100 flex gap-2">
-          <input type="text" id="mentor-question-input" placeholder="Ask your Career Mentor a question (e.g. How to prepare for backend interviews?)"
-            class="flex-1 text-xs border border-indigo-200 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
-          <button id="btn-ask-mentor" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-1.5 rounded-md transition shadow">
-            Ask Mentor
-          </button>
+          <h2 class="text-base font-bold text-indigo-950">Welcome, <span id="setup-user-name">Learner</span>! Complete Your Profile Setup</h2>
+          <p class="text-xs text-indigo-700 mt-0.5">
+            Tell us about your background and baseline skills so our 5 specialized AI agents can evaluate your gaps and generate your personalized roadmap.
+          </p>
         </div>
       </div>
 
-      <!-- 2-Column: Gaps & Readiness -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Gap Analysis (2 cols) -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div>
-              <h3 class="text-base font-bold text-slate-900">Skill Gap Analysis</h3>
-              <p class="text-xs text-slate-500">Target Role Requirements vs. Evaluated Skills</p>
-            </div>
-            <span id="gap-role-title" class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md">Full Stack Developer</span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-            <!-- Missing Skills -->
-            <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-red-800 uppercase tracking-wider">Missing Skills</span>
-                <span id="badge-count-missing" class="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">0</span>
-              </div>
-              <div id="gap-missing-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
-                <span class="text-xs text-slate-400 italic">None</span>
-              </div>
-            </div>
-
-            <!-- Weak Skills -->
-            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Weak / Developing</span>
-                <span id="badge-count-weak" class="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">0</span>
-              </div>
-              <div id="gap-weak-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
-                <span class="text-xs text-slate-400 italic">None</span>
-              </div>
-            </div>
-
-            <!-- Transferable Skills -->
-            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-blue-800 uppercase tracking-wider">Transferable / Retained</span>
-                <span id="badge-count-transferable" class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">0</span>
-              </div>
-              <div id="gap-transferable-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
-                <span class="text-xs text-slate-400 italic">None</span>
-              </div>
-            </div>
-
-            <!-- Strong Skills -->
-            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Verified Strong</span>
-                <span id="badge-count-strong" class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">0</span>
-              </div>
-              <div id="gap-strong-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
-                <span class="text-xs text-slate-400 italic">None</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Readiness Score Card (1 col) -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+      <section id="section-create-profile" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="border-b border-slate-100 pb-4 mb-6 flex items-center justify-between">
           <div>
-            <div class="border-b border-slate-100 pb-2 mb-3">
-              <h3 class="text-base font-bold text-slate-900">Role Readiness</h3>
-              <p class="text-[11px] text-slate-500">Capped at Intermediate until skill is assessed</p>
-            </div>
-
-            <!-- Big Percentage Display -->
-            <div class="py-4 text-center">
-              <div class="inline-flex items-baseline justify-center">
-                <span id="readiness-value" class="text-5xl font-black text-indigo-700">0.0</span>
-                <span class="text-2xl font-bold text-indigo-500 ml-1">%</span>
-              </div>
-              <!-- Mandatory Label from Section 5 -->
-              <p id="readiness-label" class="text-[11px] font-semibold text-slate-500 mt-2 bg-slate-50 border border-slate-200 p-2 rounded">
-                Estimated indicator, not a guaranteed job-readiness score.
-              </p>
-            </div>
+            <h2 class="text-lg font-bold text-slate-900">Student Profile & Baseline Skills</h2>
+            <p class="text-xs text-slate-500">Configure your target career goal and self-reported skills.</p>
           </div>
-
-          <!-- Quick breakdown summary -->
-          <div class="text-xs border-t border-slate-100 pt-3 space-y-1.5">
-            <div class="flex justify-between text-slate-600">
-              <span>Completed Activities:</span>
-              <span id="completed-count" class="font-bold text-slate-800">0</span>
-            </div>
-            <div class="flex justify-between text-slate-600">
-              <span>Validated Assessments:</span>
-              <span id="validated-count" class="font-bold text-slate-800">0</span>
-            </div>
-          </div>
+          <button id="btn-quick-demo" type="button" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded">
+            Pre-fill Demo Scenario
+          </button>
         </div>
 
-      </div>
-
-      <!-- 2-Column: Roadmap & Assessment Panel -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Personalized Roadmap (2 cols) -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <form id="form-create-learner" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <h3 class="text-base font-bold text-slate-900">Personalized Learning Roadmap</h3>
-              <p class="text-xs text-slate-500">Prerequisite-ordered milestones. Remedial resources appear at the top.</p>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+              <input type="text" id="input-name" required value="Demo Student" placeholder="e.g. Alex Johnson"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <button id="btn-refresh-roadmap" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
-              Refresh
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Education Background</label>
+              <input type="text" id="input-education" value="B.S. Computer Science" placeholder="e.g. Self-taught, B.S. CS"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Target Career Goal</label>
+              <select id="select-target-role" required
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <!-- Populated via API -->
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-slate-700">Self-Reported Current Skills</label>
+              <button type="button" id="btn-add-skill-row" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                + Add Another Skill
+              </button>
+            </div>
+            <div id="skills-rows-container" class="space-y-2">
+              <!-- Default pre-loaded rows matching sample scenario -->
+              <div class="skill-row flex items-center gap-3">
+                <input type="text" placeholder="Skill (e.g. Python)" value="Python" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+                <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate" selected>Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+                <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+              </div>
+              <div class="skill-row flex items-center gap-3">
+                <input type="text" placeholder="Skill (e.g. SQL)" value="SQL" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+                <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate" selected>Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+                <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+              </div>
+              <div class="skill-row flex items-center gap-3">
+                <input type="text" placeholder="Skill (e.g. HTML)" value="HTML" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+                <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+                  <option value="Beginner" selected>Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+                <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button type="submit" id="btn-submit-profile" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow transition flex items-center gap-2">
+              <span>Analyze Gaps & Generate Roadmap</span> &rarr;
             </button>
           </div>
+        </form>
+      </section>
 
-          <div id="roadmap-list" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
-            <!-- Dynamically populated roadmap cards -->
-            <p class="text-xs text-slate-400 italic">No roadmap items generated yet.</p>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- VIEW 5: PERSONALIZED DASHBOARD                                      -->
+    <!-- =================================================================== -->
+    <div id="view-dashboard" class="hidden space-y-8 animate-fade-in">
+
+      <!-- Active Learner Banner -->
+      <div id="active-learner-banner" class="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
+            <span id="banner-avatar">DS</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="banner-name" class="font-bold text-slate-900 text-lg">Demo Student</h2>
+              <span id="banner-role-badge" class="px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800">Full Stack Developer</span>
+            </div>
+            <p id="banner-sub" class="text-xs text-slate-500">Learner ID: #1 | Education: B.S. Computer Science</p>
           </div>
         </div>
 
-        <!-- Assessments & Testing (1 col) -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
-          <div class="border-b border-slate-100 pb-3">
-            <h3 class="text-base font-bold text-slate-900">Skill Assessment</h3>
-            <p class="text-xs text-slate-500">Validate proficiency to unlock higher readiness credits.</p>
+        <!-- Career Switch Widget -->
+        <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+          <label for="switch-role-select" class="text-xs font-semibold text-slate-600">Career Pivot:</label>
+          <select id="switch-role-select" class="text-xs border border-slate-300 rounded px-2 py-1 bg-white focus:ring-1 focus:ring-indigo-500">
+            <!-- Populated dynamically -->
+          </select>
+          <button id="btn-switch-role" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1 rounded shadow transition">
+            Switch Goal
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Content Inner -->
+      <div id="dashboard-content" class="space-y-8">
+
+        <!-- Mentor Alert Banner -->
+        <div id="mentor-box" class="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-l-4 border-indigo-600 p-4 rounded-xl shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <span class="text-2xl">🤖</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-sm font-bold text-slate-900">Career Mentor Guidance</h3>
+                  <span id="mentor-source-badge" class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 border border-indigo-200">template</span>
+                </div>
+                <p id="mentor-text" class="text-xs sm:text-sm text-slate-700 mt-1 leading-relaxed">
+                  Loading mentorship insights...
+                </p>
+              </div>
+            </div>
+          </div>
+          <!-- Ask Mentor Input -->
+          <div class="mt-3 pt-3 border-t border-indigo-100 flex gap-2">
+            <input type="text" id="mentor-question-input" placeholder="Ask your Career Mentor a question (e.g. How to prepare for backend interviews?)"
+              class="flex-1 text-xs border border-indigo-200 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+            <button id="btn-ask-mentor" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-1.5 rounded-md transition shadow">
+              Ask Mentor
+            </button>
+          </div>
+        </div>
+
+        <!-- 2-Column: Gaps & Readiness -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Gap Analysis (2 cols) -->
+          <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Skill Gap Analysis</h3>
+                <p class="text-xs text-slate-500">Target Role Requirements vs. Evaluated Skills</p>
+              </div>
+              <span id="gap-role-title" class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md">Full Stack Developer</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <!-- Missing Skills -->
+              <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-red-800 uppercase tracking-wider">Missing Skills</span>
+                  <span id="badge-count-missing" class="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <div id="gap-missing-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
+                  <span class="text-xs text-slate-400 italic">None</span>
+                </div>
+              </div>
+
+              <!-- Weak Skills -->
+              <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Weak / Developing</span>
+                  <span id="badge-count-weak" class="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <div id="gap-weak-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
+                  <span class="text-xs text-slate-400 italic">None</span>
+                </div>
+              </div>
+
+              <!-- Transferable Skills -->
+              <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-blue-800 uppercase tracking-wider">Transferable / Retained</span>
+                  <span id="badge-count-transferable" class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <div id="gap-transferable-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
+                  <span class="text-xs text-slate-400 italic">None</span>
+                </div>
+              </div>
+
+              <!-- Strong Skills -->
+              <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Verified Strong</span>
+                  <span id="badge-count-strong" class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <div id="gap-strong-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
+                  <span class="text-xs text-slate-400 italic">None</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Assessment Controls -->
-          <div class="space-y-3">
+          <!-- Readiness Score Card (1 col) -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Select Skill to Assess</label>
-              <div class="flex gap-2">
-                <select id="select-assessment-skill" class="flex-1 text-xs border border-slate-300 rounded px-2 py-1.5 bg-white">
-                  <option value="JavaScript" selected>JavaScript</option>
-                  <option value="React">React</option>
-                  <option value="Node.js">Node.js</option>
-                </select>
-                <button id="btn-load-assessment" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-3 py-1.5 rounded transition">
-                  Load Questions
+              <div class="border-b border-slate-100 pb-2 mb-3">
+                <h3 class="text-base font-bold text-slate-900">Role Readiness</h3>
+                <p class="text-[11px] text-slate-500">Capped at Intermediate until skill is assessed</p>
+              </div>
+
+              <!-- Big Percentage Display -->
+              <div class="py-4 text-center">
+                <div class="inline-flex items-baseline justify-center">
+                  <span id="readiness-value" class="text-5xl font-black text-indigo-700">0.0</span>
+                  <span class="text-2xl font-bold text-indigo-500 ml-1">%</span>
+                </div>
+                <p id="readiness-label" class="text-[11px] font-semibold text-slate-500 mt-2 bg-slate-50 border border-slate-200 p-2 rounded">
+                  Estimated indicator, not a guaranteed job-readiness score.
+                </p>
+              </div>
+            </div>
+
+            <!-- Quick breakdown summary -->
+            <div class="text-xs border-t border-slate-100 pt-3 space-y-1.5">
+              <div class="flex justify-between text-slate-600">
+                <span>Completed Activities:</span>
+                <span id="completed-count" class="font-bold text-slate-800">0</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span>Validated Assessments:</span>
+                <span id="validated-count" class="font-bold text-slate-800">0</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 2-Column: Roadmap & Assessment Panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Personalized Roadmap (2 cols) -->
+          <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Personalized Learning Roadmap</h3>
+                <p class="text-xs text-slate-500">Prerequisite-ordered milestones. Remedial resources appear at the top.</p>
+              </div>
+              <button id="btn-refresh-roadmap" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                Refresh
+              </button>
+            </div>
+
+            <div id="roadmap-list" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+              <p class="text-xs text-slate-400 italic">No roadmap items generated yet.</p>
+            </div>
+          </div>
+
+          <!-- Assessments & Testing (1 col) -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+            <div class="border-b border-slate-100 pb-3">
+              <h3 class="text-base font-bold text-slate-900">Skill Assessment</h3>
+              <p class="text-xs text-slate-500">Validate proficiency to unlock higher readiness credits.</p>
+            </div>
+
+            <!-- Assessment Controls -->
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Select Skill to Assess</label>
+                <div class="flex gap-2">
+                  <select id="select-assessment-skill" class="flex-1 text-xs border border-slate-300 rounded px-2 py-1.5 bg-white">
+                    <option value="JavaScript" selected>JavaScript</option>
+                    <option value="React">React</option>
+                    <option value="Node.js">Node.js</option>
+                  </select>
+                  <button id="btn-load-assessment" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-3 py-1.5 rounded transition">
+                    Load Questions
+                  </button>
+                </div>
+              </div>
+
+              <!-- Demo Shortcut for Score < 50 -->
+              <div class="bg-amber-50 border border-amber-200 p-2.5 rounded text-xs flex items-center justify-between gap-2">
+                <span class="text-amber-800 font-medium">Demo Shortcut:</span>
+                <button id="btn-demo-fail-answers" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[11px] font-semibold transition">
+                  Select Poor Answers (&lt;50%)
                 </button>
               </div>
-            </div>
 
-            <!-- Demo Shortcut for Score < 50 -->
-            <div class="bg-amber-50 border border-amber-200 p-2.5 rounded text-xs flex items-center justify-between gap-2">
-              <span class="text-amber-800 font-medium">Demo Shortcut:</span>
-              <button id="btn-demo-fail-answers" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[11px] font-semibold transition">
-                Select Poor Answers (&lt;50%)
+              <!-- Questions Container -->
+              <div id="assessment-questions-container" class="space-y-4 max-h-[320px] overflow-y-auto pr-1 hidden">
+                <!-- Rendered Questions -->
+              </div>
+
+              <div id="assessment-submit-area" class="hidden pt-2">
+                <button id="btn-submit-assessment" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2 rounded shadow transition">
+                  Submit Assessment
+                </button>
+              </div>
+
+              <!-- Assessment Result Feedback -->
+              <div id="assessment-result-box" class="hidden p-3 rounded-lg border text-xs space-y-1.5">
+                <!-- Dynamically populated after submit -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Agent Activity Log (Full Width) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Multi-Agent Execution Log</h3>
+              <p class="text-xs text-slate-500">Real-time structured handoffs across specialized agents for the latest run.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="agent-run-id" class="text-xs font-mono bg-slate-100 px-2 py-1 rounded text-slate-700 font-semibold">run_id: none</span>
+              <button id="btn-refresh-agent-log" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                Refresh Log
               </button>
             </div>
+          </div>
 
-            <!-- Questions Container -->
-            <div id="assessment-questions-container" class="space-y-4 max-h-[320px] overflow-y-auto pr-1 hidden">
-              <!-- Rendered Questions -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Agent</th>
+                  <th class="py-2.5 px-3">Task</th>
+                  <th class="py-2.5 px-3">Status</th>
+                  <th class="py-2.5 px-3">Duration</th>
+                  <th class="py-2.5 px-3">Input Summary</th>
+                  <th class="py-2.5 px-3">Output Result</th>
+                </tr>
+              </thead>
+              <tbody id="agent-log-tbody" class="divide-y divide-slate-100 font-mono">
+                <tr>
+                  <td colspan="6" class="py-4 text-center text-slate-400 font-sans italic">
+                    No orchestrator runs recorded yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Completed Activities, Archived Items & Historical Audit Events -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Completed Historical Activities -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <div class="border-b border-slate-100 pb-2">
+              <h3 class="text-sm font-bold text-slate-900">Completed Historical Activities</h3>
+              <p class="text-xs text-slate-500">Historical completed milestones preserved across career pivots.</p>
             </div>
-
-            <div id="assessment-submit-area" class="hidden pt-2">
-              <button id="btn-submit-assessment" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2 rounded shadow transition">
-                Submit Assessment
-              </button>
-            </div>
-
-            <!-- Assessment Result Feedback -->
-            <div id="assessment-result-box" class="hidden p-3 rounded-lg border text-xs space-y-1.5">
-              <!-- Dynamically populated after submit -->
+            <div id="completed-activities-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1 text-xs">
+              <p class="text-slate-400 italic">No completed activities yet. Check boxes on your roadmap to complete items.</p>
             </div>
           </div>
-        </div>
 
-      </div>
+          <!-- Archived Previous Career Roadmap -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <div class="border-b border-slate-100 pb-2">
+              <h3 class="text-sm font-bold text-slate-900">Archived Previous Career Roadmap</h3>
+              <p class="text-xs text-slate-500">Incomplete milestones from prior career goals preserved with archived=1.</p>
+            </div>
+            <div id="archived-roadmap-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1 text-xs">
+              <p class="text-slate-400 italic">No archived items yet. When you switch career goals, old incomplete items appear here.</p>
+            </div>
+          </div>
 
-      <!-- Agent Activity Log (Full Width) -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div>
-            <h3 class="text-base font-bold text-slate-900">Multi-Agent Execution Log</h3>
-            <p class="text-xs text-slate-500">Real-time structured handoffs across specialized agents for the latest run.</p>
+          <!-- Event History -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <div class="border-b border-slate-100 pb-2">
+              <h3 class="text-sm font-bold text-slate-900">Event Audit Log</h3>
+              <p class="text-xs text-slate-500">Immutable chronological events recorded in database.</p>
+            </div>
+            <div id="event-history-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1 text-xs">
+              <p class="text-slate-400 italic">No events logged yet.</p>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span id="agent-run-id" class="text-xs font-mono bg-slate-100 px-2 py-1 rounded text-slate-700 font-semibold">run_id: none</span>
-            <button id="btn-refresh-agent-log" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
-              Refresh Log
-            </button>
-          </div>
-        </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-200">
-              <tr>
-                <th class="py-2.5 px-3">Agent</th>
-                <th class="py-2.5 px-3">Task</th>
-                <th class="py-2.5 px-3">Status</th>
-                <th class="py-2.5 px-3">Duration</th>
-                <th class="py-2.5 px-3">Input Summary</th>
-                <th class="py-2.5 px-3">Output Result</th>
-              </tr>
-            </thead>
-            <tbody id="agent-log-tbody" class="divide-y divide-slate-100 font-mono">
-              <tr>
-                <td colspan="6" class="py-4 text-center text-slate-400 font-sans italic">
-                  No orchestrator runs recorded yet.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Completed Activities & Historical Audit Events -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <!-- Completed Learning Activities -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
-          <div class="border-b border-slate-100 pb-2">
-            <h3 class="text-sm font-bold text-slate-900">Completed Learning Activities</h3>
-            <p class="text-xs text-slate-500">Tracked separately from role readiness score.</p>
-          </div>
-          <div id="completed-activities-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1 text-xs">
-            <p class="text-slate-400 italic">No completed activities yet. Check boxes on your roadmap to complete items.</p>
-          </div>
-        </div>
-
-        <!-- Event History -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
-          <div class="border-b border-slate-100 pb-2">
-            <h3 class="text-sm font-bold text-slate-900">Event Audit Log</h3>
-            <p class="text-xs text-slate-500">Immutable chronological events recorded in database.</p>
-          </div>
-          <div id="event-history-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1 text-xs">
-            <p class="text-slate-400 italic">No events logged yet.</p>
-          </div>
         </div>
 
       </div>
 
     </div>
+
   </main>
 
   <!-- Footer -->
@@ -421,17 +755,32 @@
 
   <!-- Vanilla JavaScript Application Logic -->
   <script>
+    // --- Application State ---
+    let currentUser = null;
+    let csrfToken = null;
     let currentLearnerId = null;
+    let currentView = "welcome";
     let rolesCatalog = {};
     let loadedQuestions = [];
 
-    // --- DOM Elements ---
+    // --- DOM Elements: Navigation & Views ---
+    const viewWelcome = document.getElementById("view-welcome");
+    const viewLogin = document.getElementById("view-login");
+    const viewSignup = document.getElementById("view-signup");
+    const viewProfileSetup = document.getElementById("view-profile-setup");
+    const viewDashboard = document.getElementById("view-dashboard");
+
+    const navGuestActions = document.getElementById("nav-guest-actions");
+    const navUserActions = document.getElementById("nav-user-actions");
+    const navUserAvatar = document.getElementById("nav-user-avatar");
+    const navUserEmail = document.getElementById("nav-user-email");
+    const setupUserName = document.getElementById("setup-user-name");
+
+    // --- DOM Elements: Dashboard ---
     const selectTargetRole = document.getElementById("select-target-role");
     const switchRoleSelect = document.getElementById("switch-role-select");
     const skillsContainer = document.getElementById("skills-rows-container");
     const formCreateLearner = document.getElementById("form-create-learner");
-    const sectionCreateProfile = document.getElementById("section-create-profile");
-    const dashboardContent = document.getElementById("dashboard-content");
     const activeLearnerBanner = document.getElementById("active-learner-banner");
 
     // Banner Elements
@@ -477,9 +826,231 @@
 
     // Lists
     const completedActivitiesList = document.getElementById("completed-activities-list");
+    const archivedRoadmapList = document.getElementById("archived-roadmap-list");
     const eventHistoryList = document.getElementById("event-history-list");
 
-    // --- 1. Init & Fetch Roles ---
+    // --- Helper: API Fetch with CSRF ---
+    async function apiFetch(url, options = {}) {
+      options.headers = options.headers || {};
+      const method = (options.method || "GET").toUpperCase();
+      if (csrfToken && ["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
+        options.headers["X-CSRF-Token"] = csrfToken;
+      }
+      return fetch(url, options);
+    }
+
+    // --- View Navigation Switcher ---
+    function showView(viewName) {
+      currentView = viewName;
+      [viewWelcome, viewLogin, viewSignup, viewProfileSetup, viewDashboard].forEach(el => el.classList.add("hidden"));
+
+      if (viewName === "welcome") {
+        viewWelcome.classList.remove("hidden");
+      } else if (viewName === "login") {
+        viewLogin.classList.remove("hidden");
+        document.getElementById("login-error-alert").classList.add("hidden");
+      } else if (viewName === "signup") {
+        viewSignup.classList.remove("hidden");
+        document.getElementById("signup-error-alert").classList.add("hidden");
+      } else if (viewName === "profile-setup") {
+        viewProfileSetup.classList.remove("hidden");
+      } else if (viewName === "dashboard") {
+        viewDashboard.classList.remove("hidden");
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function updateNavUI() {
+      if (currentUser) {
+        navGuestActions.classList.add("hidden");
+        navUserActions.classList.remove("hidden");
+        navUserEmail.textContent = currentUser.email;
+        navUserAvatar.textContent = (currentUser.name || "U")[0].toUpperCase();
+      } else {
+        navGuestActions.classList.remove("hidden");
+        navUserActions.classList.add("hidden");
+      }
+    }
+
+    // --- 1. Check Auth Status on Startup ---
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const json = await res.json();
+        if (json.ok && json.data) {
+          currentUser = json.data.user;
+          csrfToken = json.data.csrf_token;
+          updateNavUI();
+
+          if (json.data.has_profile && json.data.learner_id) {
+            currentLearnerId = json.data.learner_id;
+            setupLearnerUI(currentUser.name, json.data.education || "", json.data.target_role || "Full Stack Developer");
+            await refreshAllData();
+            showView("dashboard");
+          } else {
+            setupUserName.textContent = currentUser.name;
+            document.getElementById("input-name").value = currentUser.name;
+            showView("profile-setup");
+          }
+          return;
+        }
+      } catch (err) {
+        console.log("Not authenticated", err);
+      }
+      currentUser = null;
+      csrfToken = null;
+      updateNavUI();
+      showView("welcome");
+    }
+
+    // --- 2. Login Flow ---
+    document.getElementById("form-login").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      const errBox = document.getElementById("login-error-alert");
+      errBox.classList.add("hidden");
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const json = await res.json();
+        if (json.ok && json.data) {
+          currentUser = json.data.user;
+          csrfToken = json.data.csrf_token;
+          updateNavUI();
+
+          if (json.data.has_profile && json.data.learner_id) {
+            currentLearnerId = json.data.learner_id;
+            setupLearnerUI(currentUser.name, json.data.education || "", json.data.target_role || "Full Stack Developer");
+            await refreshAllData();
+            showView("dashboard");
+          } else {
+            setupUserName.textContent = currentUser.name;
+            document.getElementById("input-name").value = currentUser.name;
+            showView("profile-setup");
+          }
+        } else {
+          errBox.textContent = json.error || "Login failed. Please check credentials.";
+          errBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        errBox.textContent = "Unable to connect to server. Please try again.";
+        errBox.classList.remove("hidden");
+      }
+    });
+
+    // --- 3. Signup Flow ---
+    document.getElementById("form-signup").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("signup-name").value.trim();
+      const email = document.getElementById("signup-email").value.trim();
+      const password = document.getElementById("signup-password").value;
+      const passwordConfirm = document.getElementById("signup-password-confirm").value;
+      const errBox = document.getElementById("signup-error-alert");
+      errBox.classList.add("hidden");
+
+      if (password !== passwordConfirm) {
+        errBox.textContent = "Passwords do not match.";
+        errBox.classList.remove("hidden");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password })
+        });
+        const json = await res.json();
+        if (json.ok && json.data) {
+          currentUser = json.data.user;
+          csrfToken = json.data.csrf_token;
+          updateNavUI();
+          setupUserName.textContent = currentUser.name;
+          document.getElementById("input-name").value = currentUser.name;
+          showView("profile-setup");
+        } else {
+          errBox.textContent = json.error || "Registration failed. Please check your inputs.";
+          errBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        errBox.textContent = "Unable to connect to server. Please try again.";
+        errBox.classList.remove("hidden");
+      }
+    });
+
+    // --- 4. Logout Flow ---
+    async function handleLogout() {
+      try {
+        await apiFetch("/api/auth/logout", { method: "POST" });
+      } catch (err) {
+        console.error("Logout request error", err);
+      }
+      currentUser = null;
+      csrfToken = null;
+      currentLearnerId = null;
+      updateNavUI();
+      showView("welcome");
+    }
+
+    document.getElementById("btn-nav-logout").addEventListener("click", handleLogout);
+
+    // --- 5. Quick Demo Student Loader ---
+    async function launchDemoStudent() {
+      try {
+        const res = await fetch("/api/learners/1");
+        const json = await res.json();
+        if (json.ok && json.data) {
+          currentLearnerId = 1;
+          setupLearnerUI(json.data.name, json.data.education, json.data.target_role);
+          await refreshAllData();
+          showView("dashboard");
+          return;
+        }
+      } catch (err) {
+        console.log("Could not load learner #1, opening setup form", err);
+      }
+      showView("profile-setup");
+    }
+
+    // --- Navigation Button Bindings ---
+    document.getElementById("header-brand-link").addEventListener("click", () => {
+      if (currentUser && currentLearnerId) {
+        showView("dashboard");
+      } else {
+        showView("welcome");
+      }
+    });
+
+    document.getElementById("btn-nav-demo").addEventListener("click", launchDemoStudent);
+    document.getElementById("hero-btn-demo").addEventListener("click", launchDemoStudent);
+    document.getElementById("cta-btn-demo").addEventListener("click", launchDemoStudent);
+
+    document.getElementById("btn-nav-login").addEventListener("click", () => showView("login"));
+    document.getElementById("hero-btn-login").addEventListener("click", () => showView("login"));
+    document.getElementById("btn-goto-login").addEventListener("click", () => showView("login"));
+
+    document.getElementById("btn-nav-signup").addEventListener("click", () => showView("signup"));
+    document.getElementById("hero-btn-get-started").addEventListener("click", () => showView("signup"));
+    document.getElementById("cta-btn-signup").addEventListener("click", () => showView("signup"));
+    document.getElementById("btn-goto-signup").addEventListener("click", () => showView("signup"));
+
+    document.getElementById("btn-login-back-home").addEventListener("click", () => showView("welcome"));
+    document.getElementById("btn-signup-back-home").addEventListener("click", () => showView("welcome"));
+
+    document.getElementById("btn-nav-dashboard").addEventListener("click", () => {
+      if (currentLearnerId) {
+        showView("dashboard");
+      } else {
+        showView("profile-setup");
+      }
+    });
+
+    // --- 6. Fetch Roles Catalog ---
     async function loadRoles() {
       try {
         const res = await fetch("/api/roles");
@@ -506,7 +1077,7 @@
       }
     }
 
-    // --- 2. Add / Remove Skill Rows ---
+    // --- 7. Add / Remove Skill Rows in Profile Setup ---
     document.getElementById("btn-add-skill-row").addEventListener("click", () => {
       const row = document.createElement("div");
       row.className = "skill-row flex items-center gap-3";
@@ -527,9 +1098,9 @@
       btn.addEventListener("click", (e) => e.target.closest(".skill-row").remove());
     });
 
-    // --- 3. Quick Demo Preset ---
+    // Pre-fill button inside profile setup
     document.getElementById("btn-quick-demo").addEventListener("click", () => {
-      document.getElementById("input-name").value = "Demo Student";
+      document.getElementById("input-name").value = (currentUser ? currentUser.name : "Demo Student");
       document.getElementById("input-education").value = "B.S. Computer Science";
       selectTargetRole.value = "Full Stack Developer";
       skillsContainer.innerHTML = `
@@ -560,7 +1131,7 @@
       });
     });
 
-    // --- 4. Submit Profile Form ---
+    // --- 8. Submit Profile Form ---
     formCreateLearner.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("input-name").value.trim();
@@ -577,7 +1148,7 @@
       });
 
       try {
-        const res = await fetch("/api/learners", {
+        const res = await apiFetch("/api/learners", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, education, target_role: targetRole, skills })
@@ -587,6 +1158,7 @@
           currentLearnerId = json.data.learner_id;
           setupLearnerUI(name, education, targetRole);
           await refreshAllData();
+          showView("dashboard");
         } else {
           alert("Error: " + json.error);
         }
@@ -600,45 +1172,42 @@
       bannerName.textContent = name;
       bannerRoleBadge.textContent = role;
       bannerSub.textContent = `Learner ID: #${currentLearnerId} | Education: ${education || 'General'}`;
-      bannerAvatar.textContent = name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+      bannerAvatar.textContent = (name || "Learner").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
       gapRoleTitle.textContent = role;
-
-      activeLearnerBanner.classList.remove("hidden");
-      dashboardContent.classList.remove("hidden");
-      sectionCreateProfile.classList.add("hidden");
 
       // Set switch select to other role
       const otherRole = Object.keys(rolesCatalog).find(r => r !== role);
       if (otherRole) switchRoleSelect.value = otherRole;
     }
 
-    // --- 5. Refresh All Dashboard Data ---
+    // --- 9. Refresh All Dashboard Data ---
     async function refreshAllData() {
       if (!currentLearnerId) return;
       await Promise.all([
         refreshGap(),
         refreshRoadmap(),
+        refreshArchivedRoadmap(),
         refreshProgress(),
         refreshAgentLog()
       ]);
     }
 
-    // --- 6. Refresh Gap Analysis ---
+    // --- 10. Refresh Gap Analysis ---
     async function refreshGap() {
       try {
         const res = await fetch(`/api/learners/${currentLearnerId}/gap`);
         const json = await res.json();
         if (json.ok) {
           const gap = json.data;
-          renderBadges(gapMissingContainer, gap.missing, "bg-red-100 text-red-800 border-red-200");
-          renderBadges(gapWeakContainer, gap.weak, "bg-amber-100 text-amber-800 border-amber-200");
-          renderBadges(gapTransferableContainer, gap.transferable, "bg-blue-100 text-blue-800 border-blue-200");
-          renderBadges(gapStrongContainer, gap.transferable, "bg-emerald-100 text-emerald-800 border-emerald-200");
+          renderBadges(gapMissingContainer, gap.missing, "bg-red-50 text-red-700 border-red-200");
+          renderBadges(gapWeakContainer, gap.weak, "bg-amber-50 text-amber-700 border-amber-200");
+          renderBadges(gapTransferableContainer, gap.transferable, "bg-blue-50 text-blue-700 border-blue-200");
+          renderBadges(gapStrongContainer, gap.strong, "bg-emerald-50 text-emerald-700 border-emerald-200");
 
           badgeCountMissing.textContent = gap.missing.length;
           badgeCountWeak.textContent = gap.weak.length;
           badgeCountTransferable.textContent = gap.transferable.length;
-          badgeCountStrong.textContent = gap.transferable.length;
+          badgeCountStrong.textContent = gap.strong.length;
         }
       } catch (e) {
         console.error("Error refreshing gap", e);
@@ -659,7 +1228,7 @@
       });
     }
 
-    // --- 7. Refresh Roadmap ---
+    // --- 11. Refresh Roadmap ---
     async function refreshRoadmap() {
       try {
         const res = await fetch(`/api/learners/${currentLearnerId}/roadmap`);
@@ -736,7 +1305,7 @@
 
     async function markItemCompleted(itemId) {
       try {
-        const res = await fetch(`/api/learners/${currentLearnerId}/roadmap/${itemId}`, {
+        const res = await apiFetch(`/api/learners/${currentLearnerId}/roadmap/${itemId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: "completed" })
@@ -752,7 +1321,42 @@
 
     document.getElementById("btn-refresh-roadmap").addEventListener("click", refreshRoadmap);
 
-    // --- 8. Refresh Progress & Readiness ---
+    // --- 12. Refresh Archived Previous Career Roadmap ---
+    async function refreshArchivedRoadmap() {
+      try {
+        const res = await fetch(`/api/learners/${currentLearnerId}/roadmap/archived`);
+        const json = await res.json();
+        if (json.ok) {
+          const items = json.data;
+          archivedRoadmapList.innerHTML = "";
+          if (items.length === 0) {
+            archivedRoadmapList.innerHTML = '<p class="text-slate-400 italic">No archived items yet. When you switch career goals, old incomplete items appear here.</p>';
+            return;
+          }
+
+          items.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "p-2.5 rounded bg-slate-50 border border-slate-200 opacity-80 flex items-start justify-between gap-2";
+            card.innerHTML = `
+              <div>
+                <div class="font-bold text-slate-700 text-xs">${item.resource_title}</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">
+                  <span class="font-semibold text-slate-600">${item.skill}</span> &bull; ${item.resource_type}
+                </div>
+              </div>
+              <span class="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded shrink-0">
+                Archived
+              </span>
+            `;
+            archivedRoadmapList.appendChild(card);
+          });
+        }
+      } catch (e) {
+        console.error("Error refreshing archived roadmap", e);
+      }
+    }
+
+    // --- 13. Refresh Progress & Readiness ---
     async function refreshProgress() {
       try {
         const res = await fetch(`/api/learners/${currentLearnerId}/progress`);
@@ -766,14 +1370,17 @@
           // Render completed activities
           completedActivitiesList.innerHTML = "";
           if (prog.completed_activities.length === 0) {
-            completedActivitiesList.innerHTML = '<p class="text-slate-400 italic">No completed activities yet.</p>';
+            completedActivitiesList.innerHTML = '<p class="text-slate-400 italic">No completed activities yet. Check boxes on your active roadmap to complete items.</p>';
           } else {
             prog.completed_activities.forEach(act => {
               const el = document.createElement("div");
-              el.className = "flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200";
+              el.className = "flex items-center justify-between p-2.5 rounded bg-slate-50 border border-slate-200";
               el.innerHTML = `
-                <span class="font-medium text-slate-800">${act.resource_title}</span>
-                <span class="text-[10px] uppercase font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Completed</span>
+                <div>
+                  <div class="font-bold text-slate-800 text-xs">${act.resource_title}</div>
+                  <div class="text-[11px] text-indigo-700 font-semibold mt-0.5">${act.skill} &bull; ${act.resource_type}</div>
+                </div>
+                <span class="text-[10px] uppercase font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">Completed</span>
               `;
               completedActivitiesList.appendChild(el);
             });
@@ -800,7 +1407,7 @@
       }
     }
 
-    // --- 9. Assessments ---
+    // --- 14. Assessments ---
     document.getElementById("btn-load-assessment").addEventListener("click", async () => {
       const skill = selectAssessmentSkill.value;
       try {
@@ -827,7 +1434,7 @@
         qDiv.innerHTML = `
           <p class="font-bold text-slate-900 text-xs">Q${qIdx + 1}: ${q.question}</p>
           <div class="space-y-1.5 pl-1">
-            ${q.options.map((opt, optIdx) => `
+            ${q.options.map((opt) => `
               <label class="flex items-start gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900">
                 <input type="radio" name="question_${q.id}" value="${opt}" class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
                 <span>${opt}</span>
@@ -847,7 +1454,6 @@
       if (loadedQuestions.length === 0) {
         await document.getElementById("btn-load-assessment").click();
       }
-      // Select incorrect answers intentionally (e.g. index 1 or 2)
       loadedQuestions.forEach(q => {
         const radios = document.querySelectorAll(`input[name="question_${q.id}"]`);
         if (radios.length > 1) {
@@ -868,7 +1474,7 @@
       });
 
       try {
-        const res = await fetch(`/api/learners/${currentLearnerId}/assessments`, {
+        const res = await apiFetch(`/api/learners/${currentLearnerId}/assessments`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ skill, answers })
@@ -930,7 +1536,7 @@
       mentorSourceBadge.textContent = out.mentor_source || "template";
     }
 
-    // --- 10. Switch Target Career Goal ---
+    // --- 15. Switch Target Career Goal ---
     document.getElementById("btn-switch-role").addEventListener("click", async () => {
       const newRole = switchRoleSelect.value;
       if (!confirm(`Switch career target to ${newRole}? Existing completed activities and assessments will be preserved.`)) {
@@ -938,7 +1544,7 @@
       }
 
       try {
-        const res = await fetch(`/api/learners/${currentLearnerId}/target-role`, {
+        const res = await apiFetch(`/api/learners/${currentLearnerId}/target-role`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ role: newRole })
@@ -966,7 +1572,7 @@
       }
     });
 
-    // --- 11. Refresh Agent Activity Log ---
+    // --- 16. Refresh Agent Activity Log ---
     async function refreshAgentLog() {
       try {
         const res = await fetch(`/api/learners/${currentLearnerId}/agent-log`);
@@ -993,7 +1599,7 @@
                   l.status === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
                 }">${l.status}</span>
               </td>
-              <td class="py-2.5 px-3 text-slate-600 font-mono">${l.duration_ms}ms</td>
+              <td class="py-2.5 px-3 text-slate-600 font-mono">${typeof l.duration_ms === 'number' ? (l.duration_ms < 1 ? l.duration_ms.toFixed(3) : l.duration_ms.toFixed(2)) : l.duration_ms}ms</td>
               <td class="py-2.5 px-3 text-slate-500 text-[11px] max-w-[200px] truncate" title="${escapeHtml(l.input_summary)}">
                 ${escapeHtml(l.input_summary)}
               </td>
@@ -1011,13 +1617,13 @@
 
     document.getElementById("btn-refresh-agent-log").addEventListener("click", refreshAgentLog);
 
-    // --- 12. Ask Mentor Directly ---
+    // --- 17. Ask Mentor Directly ---
     document.getElementById("btn-ask-mentor").addEventListener("click", async () => {
       const q = mentorQuestionInput.value.trim();
       if (!q) return;
 
       try {
-        const res = await fetch("/api/mentor", {
+        const res = await apiFetch("/api/mentor", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ learner_id: currentLearnerId, question: q })
@@ -1039,8 +1645,11 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
-    // Startup
-    loadRoles();
+    // Startup Initialization
+    window.addEventListener("DOMContentLoaded", async () => {
+      await loadRoles();
+      await checkAuth();
+    });
   </script>
 </body>
 </html>

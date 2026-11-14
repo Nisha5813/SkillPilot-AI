@@ -5,16 +5,35 @@ and orchestrating multi-agent career readiness workflows.
 """
 
 import json
+import secrets
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from auth import (
+    CSRF_HEADER_NAME,
+    SESSION_COOKIE_NAME,
+    clear_auth_cookies,
+    create_session,
+    delete_session,
+    get_current_user,
+    get_user_by_session_token,
+    hash_password,
+    is_rate_limited,
+    record_login_attempt,
+    require_current_user,
+    set_auth_cookies,
+    validate_email,
+    validate_password_strength,
+    verify_csrf,
+    verify_password,
+)
 from db import get_db, init_db
 from orchestrator import Orchestrator
 
@@ -58,6 +77,17 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 
 # Pydantic Schemas
+class RegisterRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    email: str = Field(..., min_length=3, max_length=120)
+    password: str = Field(..., min_length=8, max_length=128)
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=120)
+    password: str = Field(..., min_length=1, max_length=128)
+
+
 class SkillInput(BaseModel):
     skill: str = Field(..., min_length=1)
     claimed_level: str = Field(..., pattern="^(Beginner|Intermediate|Advanced)$")
@@ -102,18 +132,189 @@ def serve_root():
     return success_response({"message": "SkillPilot AI backend running. Place index.html in static/"})
 
 
-# 12 Required API Endpoints
+# =====================================================================
+# Authentication Endpoints (Phase 2)
+# =====================================================================
+
+@app.post("/api/auth/register")
+def register_user(payload: RegisterRequest):
+    try:
+        clean_name = payload.name.strip()
+        if not clean_name:
+            return error_response("Name cannot be empty", status_code=status.HTTP_400_BAD_REQUEST)
+        clean_email = validate_email(payload.email)
+        validate_password_strength(payload.password)
+    except ValueError as ve:
+        return error_response(str(ve), status_code=status.HTTP_400_BAD_REQUEST)
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE email = ?", (clean_email,))
+        if cur.fetchone():
+            return error_response("An account with this email already exists", status_code=status.HTTP_400_BAD_REQUEST)
+
+        pwd_hash = hash_password(payload.password)
+
+        with conn:
+            cur.execute(
+                "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+                (clean_name, clean_email, pwd_hash),
+            )
+            user_id = cur.lastrowid
+
+        raw_token, csrf_token = create_session(user_id, conn)
+        resp = success_response(
+            {
+                "user": {
+                    "id": user_id,
+                    "name": clean_name,
+                    "email": clean_email,
+                },
+                "has_profile": False,
+                "learner_id": None,
+                "csrf_token": csrf_token,
+            },
+            status_code=status.HTTP_201_CREATED,
+        )
+        set_auth_cookies(resp, raw_token, csrf_token)
+        return resp
+    finally:
+        conn.close()
+
+
+@app.post("/api/auth/login")
+def login_user(payload: LoginRequest, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    clean_email = payload.email.strip().lower()
+
+    conn = get_db()
+    try:
+        if is_rate_limited(clean_email, conn) or is_rate_limited(client_ip, conn):
+            return error_response(
+                "Too many failed login attempts. Please wait 5 minutes before trying again.",
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
+        cur = conn.cursor()
+        cur.execute("SELECT id, name, email, password_hash, is_active FROM users WHERE email = ?", (clean_email,))
+        user_row = cur.fetchone()
+
+        if not user_row or not verify_password(payload.password, user_row["password_hash"]):
+            record_login_attempt(clean_email, False, conn)
+            record_login_attempt(client_ip, False, conn)
+            return error_response("Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
+
+        if not user_row["is_active"]:
+            return error_response("Account is disabled", status_code=status.HTTP_403_FORBIDDEN)
+
+        record_login_attempt(clean_email, True, conn)
+
+        raw_token, csrf_token = create_session(user_row["id"], conn)
+
+        cur.execute("SELECT id, name, education, target_role FROM learners WHERE user_id = ?", (user_row["id"],))
+        learner = cur.fetchone()
+        has_profile = learner is not None
+
+        resp = success_response({
+            "user": {
+                "id": user_row["id"],
+                "name": user_row["name"],
+                "email": user_row["email"],
+            },
+            "has_profile": has_profile,
+            "learner_id": learner["id"] if learner else None,
+            "target_role": learner["target_role"] if learner else None,
+            "education": learner["education"] if learner else None,
+            "csrf_token": csrf_token,
+        })
+        set_auth_cookies(resp, raw_token, csrf_token)
+        return resp
+    finally:
+        conn.close()
+
+
+@app.post("/api/auth/logout")
+def logout_user(request: Request):
+    token = request.cookies.get(SESSION_COOKIE_NAME)
+    if token:
+        user = get_user_by_session_token(token)
+        if user:
+            submitted_csrf = request.headers.get(CSRF_HEADER_NAME)
+            if not submitted_csrf or not secrets.compare_digest(submitted_csrf, user["csrf_token"]):
+                return error_response("Invalid or missing CSRF token", status_code=status.HTTP_403_FORBIDDEN)
+        delete_session(token)
+
+    resp = success_response({"message": "Successfully logged out"})
+    clear_auth_cookies(resp)
+    return resp
+
+
+@app.get("/api/auth/me")
+def get_auth_me(request: Request):
+    token = request.cookies.get(SESSION_COOKIE_NAME)
+    if not token:
+        return error_response("Not authenticated", status_code=status.HTTP_401_UNAUTHORIZED)
+
+    conn = get_db()
+    try:
+        user = get_user_by_session_token(token, conn)
+        if not user:
+            return error_response("Session invalid or expired", status_code=status.HTTP_401_UNAUTHORIZED)
+
+        cur = conn.cursor()
+        cur.execute("SELECT id, name, education, target_role FROM learners WHERE user_id = ?", (user["id"],))
+        learner = cur.fetchone()
+        has_profile = learner is not None
+
+        return success_response({
+            "user": {
+                "id": user["id"],
+                "name": user["name"],
+                "email": user["email"],
+                "created_at": user.get("created_at"),
+            },
+            "has_profile": has_profile,
+            "learner_id": learner["id"] if learner else None,
+            "target_role": learner["target_role"] if learner else None,
+            "education": learner["education"] if learner else None,
+            "csrf_token": user["csrf_token"],
+        })
+    finally:
+        conn.close()
+
+
+# =====================================================================
+# Existing 12 Core API Endpoints
+# =====================================================================
 
 # 1. POST /api/learners
 @app.post("/api/learners")
-def create_learner(payload: CreateLearnerRequest):
+def create_learner(payload: CreateLearnerRequest, request: Request):
     try:
+        user = get_current_user(request)
+        user_id = user["id"] if user else None
+
+        if user:
+            submitted_csrf = request.headers.get(CSRF_HEADER_NAME)
+            if not submitted_csrf or not secrets.compare_digest(submitted_csrf, user["csrf_token"]):
+                return error_response("Invalid or missing CSRF token", status_code=status.HTTP_403_FORBIDDEN)
+
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT id FROM learners WHERE user_id = ?", (user_id,))
+            existing = cur.fetchone()
+            conn.close()
+            if existing:
+                return error_response("A learner profile already exists for this account", status_code=status.HTTP_400_BAD_REQUEST)
+
         skills_dicts = [{"skill": s.skill, "claimed_level": s.claimed_level} for s in payload.skills]
         res = orchestrator.create_learner(
             name=payload.name,
             education=payload.education or "",
             target_role=payload.target_role,
             skills=skills_dicts,
+            user_id=user_id,
         )
         return success_response(res, status_code=status.HTTP_201_CREATED)
     except ValueError as ve:
@@ -182,7 +383,7 @@ def get_learner_gap(id: int):
 
 # 4. GET /api/learners/{id}/roadmap
 @app.get("/api/learners/{id}/roadmap")
-def get_learner_roadmap(id: int):
+def get_learner_roadmap(id: int, archived: Optional[int] = 0):
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT id FROM learners WHERE id = ?", (id,))
@@ -190,29 +391,51 @@ def get_learner_roadmap(id: int):
         conn.close()
         return error_response("Learner not found", status_code=status.HTTP_404_NOT_FOUND)
 
-    cur.execute(
-        """
-        SELECT id, skill, resource_title, resource_type, status, position, is_remedial
-        FROM roadmap_items
-        WHERE learner_id = ? AND archived = 0
-        ORDER BY position ASC
-        """,
-        (id,),
-    )
-    items = [
-        {
+    if archived == 1:
+        # Retrieve archived incomplete items from previous career goals
+        cur.execute(
+            """
+            SELECT id, skill, resource_title, resource_type, status, position, is_remedial, archived
+            FROM roadmap_items
+            WHERE learner_id = ? AND archived = 1
+            ORDER BY id ASC
+            """,
+            (id,),
+        )
+    else:
+        # Retrieve active pending items for the current active career role
+        cur.execute(
+            """
+            SELECT id, skill, resource_title, resource_type, status, position, is_remedial, archived
+            FROM roadmap_items
+            WHERE learner_id = ? AND archived = 0 AND status = 'pending'
+            ORDER BY position ASC, id ASC
+            """,
+            (id,),
+        )
+
+    rows = cur.fetchall()
+    conn.close()
+
+    items = []
+    for idx, row in enumerate(rows, start=1):
+        items.append({
             "id": row["id"],
             "skill": row["skill"],
             "resource_title": row["resource_title"],
             "resource_type": row["resource_type"],
             "status": row["status"],
-            "position": row["position"],
+            "position": idx if archived == 0 else row["position"],
             "is_remedial": bool(row["is_remedial"]),
-        }
-        for row in cur.fetchall()
-    ]
-    conn.close()
+            "archived": bool(row["archived"]),
+        })
+
     return success_response(items)
+
+
+@app.get("/api/learners/{id}/roadmap/archived")
+def get_learner_archived_roadmap(id: int):
+    return get_learner_roadmap(id=id, archived=1)
 
 
 # 5. PATCH /api/learners/{id}/roadmap/{item_id} (mark completed)

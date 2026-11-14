@@ -63,7 +63,7 @@ class Orchestrator:
         input_summary: str,
         result_summary: str,
         started_at: str,
-        duration_ms: int,
+        duration_ms: float,
     ) -> None:
         conn = get_db()
         with conn:
@@ -83,7 +83,7 @@ class Orchestrator:
                     input_summary,
                     result_summary,
                     started_at,
-                    max(0, int(duration_ms)),
+                    max(0.0, float(duration_ms)),
                 ),
             )
         conn.close()
@@ -115,7 +115,7 @@ class Orchestrator:
             status = "failed"
             output_data = {"error": str(e)}
         finally:
-            duration_ms = int((time.perf_counter() - t0) * 1000)
+            duration_ms = round((time.perf_counter() - t0) * 1000, 3)
             in_summary = json.dumps(
                 {k: (str(v)[:100] if not isinstance(v, (int, float, bool)) else v) for k, v in input_data.items()}
             )
@@ -143,6 +143,7 @@ class Orchestrator:
         education: str,
         target_role: str,
         skills: List[Dict[str, str]],
+        user_id: Optional[int] = None,
     ) -> Dict[str, Any]:
         run_id = f"run_{uuid.uuid4().hex[:10]}"
         roles = self._get_roles_catalog()
@@ -155,10 +156,16 @@ class Orchestrator:
         conn = get_db()
         with conn:
             cur = conn.cursor()
-            cur.execute(
-                "INSERT INTO learners (name, education, target_role) VALUES (?, ?, ?)",
-                (name, education, target_role),
-            )
+            if user_id is not None:
+                cur.execute(
+                    "INSERT INTO learners (name, education, target_role, user_id) VALUES (?, ?, ?, ?)",
+                    (name, education, target_role, user_id),
+                )
+            else:
+                cur.execute(
+                    "INSERT INTO learners (name, education, target_role) VALUES (?, ?, ?)",
+                    (name, education, target_role),
+                )
             learner_id = cur.lastrowid
 
             # Insert learner_skills
@@ -325,45 +332,80 @@ class Orchestrator:
                 )
         conn.close()
 
-        # Step B: Roadmap Adaptation
-        # If score < 50: insert remedial resources for the skill at the top of the roadmap
+        # Step B: Learning Architect - Adapt Roadmap
+        # Fetch current active roadmap items and completed items
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, skill, resource_title, resource_type, status, position, is_remedial, archived
+            FROM roadmap_items
+            WHERE learner_id = ? AND archived = 0
+            ORDER BY position ASC
+            """,
+            (learner_id,),
+        )
+        current_active_roadmap = [dict(r) for r in cur.fetchall()]
+
+        cur.execute(
+            """
+            SELECT resource_title FROM roadmap_items
+            WHERE learner_id = ? AND status = 'completed'
+            """,
+            (learner_id,),
+        )
+        completed_titles = [r["resource_title"] for r in cur.fetchall()]
+        conn.close()
+
         courses_cat = self._get_courses_catalog()
-        remedial_added = []
-        if score < 50.0:
-            remedial_candidates = [
-                c for c in courses_cat
-                if c.get("skill") == skill and c.get("is_remedial") is True
-            ]
+
+        # Pass structured output from Progress Evaluator directly to Learning Architect
+        architect_input = {
+            "action": "adapt_remedial",
+            "assessment_result": eval_out,
+            "skill": skill,
+            "courses_catalog": courses_cat,
+            "current_roadmap": current_active_roadmap,
+            "completed_items": completed_titles,
+        }
+        architect_out = self._execute_agent(
+            self.learning_architect,
+            task=f"Adapt roadmap with remedial resources for {skill}",
+            input_data=architect_input,
+            run_id=run_id,
+            learner_id=learner_id,
+        )
+
+        remedial_added = architect_out.get("remedial_added_titles", [])
+        shift_by = architect_out.get("shift_positions_by", 0)
+        remedials_to_insert = architect_out.get("remedial_resources_selected", [])
+
+        # Persist the Learning Architect's selected remedial items at top of roadmap
+        if shift_by > 0 and remedials_to_insert:
             conn = get_db()
             with conn:
-                # Check if remedial item already active in pending roadmap
-                cur = conn.cursor()
-                for rem in remedial_candidates:
-                    cur.execute(
+                # Shift active items down
+                conn.execute(
+                    "UPDATE roadmap_items SET position = position + ? WHERE learner_id = ? AND archived = 0",
+                    (shift_by, learner_id),
+                )
+                # Insert the selected remedial items at the top
+                for rem in remedials_to_insert:
+                    conn.execute(
                         """
-                        SELECT id FROM roadmap_items
-                        WHERE learner_id = ? AND resource_title = ? AND archived = 0
+                        INSERT INTO roadmap_items (
+                            learner_id, skill, resource_title, resource_type,
+                            status, position, is_remedial, archived
+                        ) VALUES (?, ?, ?, ?, 'pending', ?, 1, 0)
                         """,
-                        (learner_id, rem["title"]),
+                        (
+                            learner_id,
+                            rem["skill"],
+                            rem["resource_title"],
+                            rem["resource_type"],
+                            rem["position"],
+                        ),
                     )
-                    existing = cur.fetchone()
-                    if not existing:
-                        # Shift all current active items' positions down by 1
-                        cur.execute(
-                            "UPDATE roadmap_items SET position = position + 1 WHERE learner_id = ? AND archived = 0",
-                            (learner_id,),
-                        )
-                        # Insert remedial item at position 1 (top of roadmap)
-                        cur.execute(
-                            """
-                            INSERT INTO roadmap_items (
-                                learner_id, skill, resource_title, resource_type,
-                                status, position, is_remedial, archived
-                            ) VALUES (?, ?, ?, ?, 'pending', 1, 1, 0)
-                            """,
-                            (learner_id, skill, rem["title"], rem.get("resource_type", "tutorial")),
-                        )
-                        remedial_added.append(rem["title"])
             conn.close()
 
         # Determine next skill if passed

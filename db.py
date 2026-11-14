@@ -8,12 +8,48 @@ DEFAULT_DB_PATH = Path(__file__).resolve().parent / DB_FILE_NAME
 SCHEMA_SQL = """
 PRAGMA foreign_keys = ON;
 
+-- 0. Users & Authentication
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    csrf_token TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_sessions_token_hash ON user_sessions(token_hash);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_or_email TEXT NOT NULL,
+    attempted_at TEXT NOT NULL DEFAULT (datetime('now')),
+    success INTEGER NOT NULL CHECK (success IN (0, 1))
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_attempts_lookup ON login_attempts(ip_or_email, attempted_at);
+
 -- 1. Learners
 CREATE TABLE IF NOT EXISTS learners (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
     name TEXT NOT NULL,
     education TEXT NOT NULL DEFAULT '',
-    target_role TEXT NOT NULL
+    target_role TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- 2. Learner Skills
@@ -100,11 +136,19 @@ def get_db(db_path: Optional[Path] = None) -> sqlite3.Connection:
 
 
 def init_db(db_path: Optional[Path] = None) -> None:
-    """Initialize all tables and indexes in the SQLite database."""
+    """Initialize all tables and indexes in the SQLite database, and apply non-destructive migrations."""
     conn = get_db(db_path)
     try:
         with conn:
             conn.executescript(SCHEMA_SQL)
+            # Migration check: add user_id column to learners if missing in existing database
+            cur = conn.cursor()
+            cur.execute("PRAGMA table_info(learners)")
+            cols = [col["name"] for col in cur.fetchall()]
+            if "user_id" not in cols:
+                cur.execute("ALTER TABLE learners ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL")
+            # Ensure partial index exists for learners.user_id
+            cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_learners_user_id ON learners(user_id) WHERE user_id IS NOT NULL")
     finally:
         conn.close()
 

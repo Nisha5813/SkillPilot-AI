@@ -1,0 +1,264 @@
+[
+  {
+    "id": "js-remedial-1",
+    "skill": "JavaScript",
+    "title": "JavaScript fundamentals: functions and closures",
+    "resource_type": "tutorial",
+    "level": "Beginner",
+    "is_remedial": true,
+    "prerequisites": []
+  },
+  {
+    "id": "js-course-1",
+    "skill": "JavaScript",
+    "title": "Modern JavaScript (ES6+) Core Concepts",
+    "resource_type": "course",
+    "level": "Beginner",
+    "is_remedial": false,
+    "prerequisites": []
+  },
+  {
+    "id": "js-tutorial-1",
+    "skill": "JavaScript",
+    "title": "Asynchronous JavaScript & Promises Deep Dive",
+    "resource_type": "tutorial",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["js-course-1"]
+  },
+  {
+    "id": "js-exercise-1",
+    "skill": "JavaScript",
+    "title": "DOM Manipulation & Event Handling Practice",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["js-course-1"]
+  },
+
+  {
+    "id": "react-course-1",
+    "skill": "React",
+    "title": "React Fundamentals: Components & JSX",
+    "resource_type": "course",
+    "level": "Beginner",
+    "is_remedial": false,
+    "prerequisites": ["JavaScript"]
+  },
+  {
+    "id": "react-tutorial-1",
+    "skill": "React",
+    "title": "State Management with React Hooks",
+    "resource_type": "tutorial",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["react-course-1"]
+  },
+  {
+    "id": "react-exercise-1",
+    "skill": "React",
+    "title": "Interactive Dashboard Mini-Project",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["react-tutorial-1"]
+  },
+
+  {
+    "id": "node-course-1",
+    "skill": "Node.js",
+    "title": "Node.js Backend Architecture & Modules",
+    "resource_type": "course",
+    "level": "Beginner",
+    "is_remedial": false,
+    "prerequisites": ["JavaScript"]
+  },
+  {
+    "id": "node-tutorial-1",
+    "skill": "Node.js",
+    "title": "Building Express Web Servers",
+    "resource_type": "tutorial",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["node-course-1"]
+  },
+  {
+    "id": "node-exercise-1",
+    "skill": "Node.js",
+    "title": "Backend Middleware & File I/O Lab",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["node-tutorial-1"]
+  },
+
+  {
+    "id": "css-course-1",
+    "skill": "CSS",
+    "title": "CSS Foundations: Box Model & Selectors",
+    "resource_type": "course",
+    "level": "Beginner",
+    "is_remedial": false,
+    "prerequisites": ["HTML"]
+  },
+  {
+    "id": "css-tutorial-1",
+    "skill": "CSS",
+    "title": "Responsive Design with Flexbox and CSS Grid",
+    "resource_type": "tutorial",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["css-course-1"]
+  },
+  {
+    "id": "css-exercise-1",
+    "skill": "CSS",
+    "title": "Responsive Landing Page Challenge",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["css-tutorial-1"]
+  },
+
+  {
+    "id": "rest-course-1",
+    "skill": "REST APIs",
+    "title": "RESTful API Design & HTTP Standards",
+    "resource_type": "course",
+    "level": "Beginner",
+    "is_remedial": false,
+    "prerequisites": []
+  },
+  {
+    "id": "rest-tutorial-1",
+    "skill": "REST APIs",
+    "title": "Authentication, Rate Limiting & Error Handling in REST",
+    "resource_type": "tutorial",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["rest-course-1"]
+  },
+  {
+    "id": "rest-exercise-1",
+    "skill": "REST APIs",
+    "title": "CRUD API Implementation & Postman Testing",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["rest-tutorial-1"]
+  },
+
+  {
+    "id": "html-tutorial-1",
+    "skill": "HTML",
+    "title": "Semantic HTML5 and Web Accessibility Standards",
+    "resource_type": "tutorial",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": []
+  },
+  {
+    "id": "html-exercise-1",
+    "skill": "HTML",
+    "title": "Accessible Forms and Semantic Structure Lab",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["html-tutorial-1"]
+  },
+
+  {
+    "id": "py-tutorial-1",
+    "skill": "Python",
+    "title": "Python Data Structures & Idiomatic Code",
+    "resource_type": "tutorial",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": []
+  },
+  {
+    "id": "py-exercise-1",
+    "skill": "Python",
+    "title": "Python Functional Programming & Decorators",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["py-tutorial-1"]
+  },
+
+  {
+    "id": "sql-tutorial-1",
+    "skill": "SQL",
+    "title": "Advanced SQL Joins, Subqueries & Aggregations",
+    "resource_type": "tutorial",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": []
+  },
+  {
+    "id": "sql-exercise-1",
+    "skill": "SQL",
+    "title": "Complex Query Optimization & Indexing Lab",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["sql-tutorial-1"]
+  },
+
+  {
+    "id": "stat-course-1",
+    "skill": "Statistics",
+    "title": "Descriptive & Inferential Statistics for Data Science",
+    "resource_type": "course",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": []
+  },
+  {
+    "id": "stat-exercise-1",
+    "skill": "Statistics",
+    "title": "Hypothesis Testing & Probability Distributions Practice",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["stat-course-1"]
+  },
+
+  {
+    "id": "pandas-course-1",
+    "skill": "Pandas",
+    "title": "Data Wrangling & Analysis with Pandas",
+    "resource_type": "course",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["Python"]
+  },
+  {
+    "id": "pandas-exercise-1",
+    "skill": "Pandas",
+    "title": "Time Series & Multi-Index Data Manipulation Lab",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["pandas-course-1"]
+  },
+
+  {
+    "id": "ml-course-1",
+    "skill": "Machine Learning",
+    "title": "Supervised & Unsupervised Machine Learning Fundamentals",
+    "resource_type": "course",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["Python", "Statistics", "Pandas"]
+  },
+  {
+    "id": "ml-exercise-1",
+    "skill": "Machine Learning",
+    "title": "End-to-End Scikit-Learn Model Pipeline",
+    "resource_type": "exercise",
+    "level": "Intermediate",
+    "is_remedial": false,
+    "prerequisites": ["ml-course-1"]
+  }
+]

@@ -112,3 +112,4 @@ def init_db(db_path: Optional[Path] = None) -> None:
 if __name__ == "__main__":
     init_db()
     print(f"Database initialized successfully at: {DEFAULT_DB_PATH}")
+

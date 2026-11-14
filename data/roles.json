@@ -1,0 +1,27 @@
+{
+  "Full Stack Developer": {
+    "title": "Full Stack Developer",
+    "description": "Builds end-to-end web applications across client interfaces, backend servers, and relational databases.",
+    "required_skills": {
+      "Python": "Intermediate",
+      "SQL": "Intermediate",
+      "HTML": "Intermediate",
+      "CSS": "Intermediate",
+      "JavaScript": "Intermediate",
+      "React": "Intermediate",
+      "Node.js": "Intermediate",
+      "REST APIs": "Intermediate"
+    }
+  },
+  "Data Scientist": {
+    "title": "Data Scientist",
+    "description": "Analyzes complex datasets, builds predictive models, and derives actionable business intelligence.",
+    "required_skills": {
+      "Python": "Intermediate",
+      "SQL": "Intermediate",
+      "Statistics": "Intermediate",
+      "Pandas": "Intermediate",
+      "Machine Learning": "Intermediate"
+    }
+  }
+}

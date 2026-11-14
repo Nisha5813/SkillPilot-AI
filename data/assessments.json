@@ -1,0 +1,140 @@
+{
+  "JavaScript": [
+    {
+      "id": "js_q1",
+      "question": "What is a closure in JavaScript?",
+      "options": [
+        "A function that retains access to variables in its outer lexical scope even after that outer function has returned",
+        "A method to terminate an infinite loop in asynchronous callbacks",
+        "A function that executes immediately and deletes all enclosed local variables",
+        "A special syntax for defining private variables in ES5 constructor functions only"
+      ],
+      "correct_answer": "A function that retains access to variables in its outer lexical scope even after that outer function has returned",
+      "concept": "closures"
+    },
+    {
+      "id": "js_q2",
+      "question": "How does an arrow function handle the 'this' keyword compared to a standard function declaration?",
+      "options": [
+        "It inherits 'this' lexically from the surrounding scope at the time it is defined",
+        "It binds 'this' dynamically to the element or object that invokes it",
+        "It automatically binds 'this' to the global window object in strict mode",
+        "It creates its own fresh execution context for 'this' upon every invocation"
+      ],
+      "correct_answer": "It inherits 'this' lexically from the surrounding scope at the time it is defined",
+      "concept": "functions"
+    },
+    {
+      "id": "js_q3",
+      "question": "When an 'await' expression is evaluated inside an async function, what actually happens?",
+      "options": [
+        "It pauses the execution of the async function until the Promise settles, while leaving the main thread unblocked",
+        "It halts the entire browser JavaScript runtime until the network request completes synchronously",
+        "It converts the asynchronous Promise into a synchronous blocking system thread",
+        "It forces the immediate rejection of any pending microtasks in the event loop"
+      ],
+      "correct_answer": "It pauses the execution of the async function until the Promise settles, while leaving the main thread unblocked",
+      "concept": "async"
+    },
+    {
+      "id": "js_q4",
+      "question": "In the JavaScript Event Loop, which queue takes priority when the call stack clears?",
+      "options": [
+        "Microtask queue (Promise callbacks, queueMicrotask) before the macrotask queue (setTimeout, setInterval)",
+        "Macrotask queue (setTimeout) before the microtask queue",
+        "Both queues are processed in strict alternating round-robin order",
+        "Tasks are picked purely at random based on CPU availability"
+      ],
+      "correct_answer": "Microtask queue (Promise callbacks, queueMicrotask) before the macrotask queue (setTimeout, setInterval)",
+      "concept": "async"
+    },
+    {
+      "id": "js_q5",
+      "question": "In the loop `for (var i = 0; i < 3; i++) { setTimeout(() => console.log(i), 10); }`, why does it log 3 three times, and how do closures with 'let' fix this?",
+      "options": [
+        "var is function-scoped so all callbacks close over the same shared variable; 'let' creates a new lexical binding for each loop iteration",
+        "setTimeout always caches the final argument value regardless of scope",
+        "var is hoisted to global memory while let prevents setTimeout from executing asynchronously",
+        "The callbacks run before the loop finishes, so let adds a synchronous delay"
+      ],
+      "correct_answer": "var is function-scoped so all callbacks close over the same shared variable; 'let' creates a new lexical binding for each loop iteration",
+      "concept": "closures"
+    }
+  ],
+  "React": [
+    {
+      "id": "react_q1",
+      "question": "What is the primary rule when calling React Hooks like useState or useEffect?",
+      "options": [
+        "They must be called at the top level of React function components, not inside loops, conditions, or nested functions",
+        "They can only be invoked inside class components' render methods",
+        "They must always be passed an async callback function",
+        "They should be called inside try/catch blocks for safety"
+      ],
+      "correct_answer": "They must be called at the top level of React function components, not inside loops, conditions, or nested functions",
+      "concept": "hooks"
+    },
+    {
+      "id": "react_q2",
+      "question": "What is the purpose of the dependency array in useEffect?",
+      "options": [
+        "It tells React to re-run the effect only when specified values change between renders",
+        "It declares the child components that this effect can access",
+        "It prevents the component from rendering until all dependencies resolve",
+        "It lists the CSS classes that should be injected into the DOM"
+      ],
+      "correct_answer": "It tells React to re-run the effect only when specified values change between renders",
+      "concept": "lifecycle"
+    },
+    {
+      "id": "react_q3",
+      "question": "Why does React use a Virtual DOM?",
+      "options": [
+        "To compute minimal differences (diffing) and batch updates to the real DOM for better rendering performance",
+        "To replace the browser DOM entirely and eliminate HTML parsing",
+        "To run backend Node.js code directly inside the browser window",
+        "To encrypt component state before storing it in localStorage"
+      ],
+      "correct_answer": "To compute minimal differences (diffing) and batch updates to the real DOM for better rendering performance",
+      "concept": "virtual_dom"
+    }
+  ],
+  "Node.js": [
+    {
+      "id": "node_q1",
+      "question": "What architecture allows Node.js to handle high concurrency despite running on a single main thread?",
+      "options": [
+        "An event-driven, non-blocking I/O model powered by the libuv event loop and thread pool",
+        "Creating a new operating system process for each incoming HTTP request",
+        "Synchronous multi-threading through the V8 virtual machine",
+        "Automated compile-time parallelism of JavaScript bytecode"
+      ],
+      "correct_answer": "An event-driven, non-blocking I/O model powered by the libuv event loop and thread pool",
+      "concept": "event_loop"
+    },
+    {
+      "id": "node_q2",
+      "question": "In Express.js, what does calling `next()` inside a middleware function do?",
+      "options": [
+        "Passes control to the next middleware or route handler in the application stack",
+        "Immediately terminates the HTTP response and sends a 200 status",
+        "Restarts the server process to prevent memory leaks",
+        "Redirects the client to the next available route"
+      ],
+      "correct_answer": "Passes control to the next middleware or route handler in the application stack",
+      "concept": "middleware"
+    },
+    {
+      "id": "node_q3",
+      "question": "What is the difference between `fs.readFile` and `fs.readFileSync` in Node.js?",
+      "options": [
+        "`fs.readFile` is asynchronous and non-blocking via callback/promises, whereas `fs.readFileSync` blocks the event loop until the file is read",
+        "`fs.readFile` can only read text files, while `fs.readFileSync` reads binary data",
+        "`fs.readFile` reads from memory cache, whereas `fs.readFileSync` reads from disk",
+        "There is no difference; `fs.readFileSync` is just an alias for backwards compatibility"
+      ],
+      "correct_answer": "`fs.readFile` is asynchronous and non-blocking via callback/promises, whereas `fs.readFileSync` blocks the event loop until the file is read",
+      "concept": "file_io"
+    }
+  ]
+}

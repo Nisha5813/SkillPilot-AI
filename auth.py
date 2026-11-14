@@ -6,6 +6,7 @@ and login rate limiting using standard library tools.
 
 import datetime
 import hashlib
+import os
 import re
 import secrets
 from typing import Optional, Tuple
@@ -214,12 +215,15 @@ def get_user_by_session_token(raw_token: str, conn=None) -> Optional[dict]:
 
 # --- Cookie Helpers ---
 
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0").lower() in ("1", "true", "yes")
+
 def set_auth_cookies(response: Response, raw_token: str, csrf_token: str) -> None:
     """Set secure session (HttpOnly) and CSRF (script-accessible) cookies."""
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=raw_token,
         httponly=True,
+        secure=COOKIE_SECURE,
         samesite="lax",
         max_age=SESSION_MAX_AGE_SECONDS,
         path="/",
@@ -228,6 +232,7 @@ def set_auth_cookies(response: Response, raw_token: str, csrf_token: str) -> Non
         key=CSRF_COOKIE_NAME,
         value=csrf_token,
         httponly=False,
+        secure=COOKIE_SECURE,
         samesite="lax",
         max_age=SESSION_MAX_AGE_SECONDS,
         path="/",
@@ -240,7 +245,7 @@ def clear_auth_cookies(response: Response) -> None:
     response.delete_cookie(key=CSRF_COOKIE_NAME, path="/")
 
 
-# --- FastAPI Dependency Providers ---
+# --- FastAPI Dependency Providers & Learner Authorization ---
 
 def get_current_user(request: Request) -> Optional[dict]:
     """Dependency: Extract current authenticated user or return None."""
@@ -271,4 +276,73 @@ def verify_csrf(request: Request, user: dict = Depends(require_current_user)) ->
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Invalid or missing CSRF token. Request rejected.",
             )
+
+
+def authorize_learner_access(learner_id: int, request: Request, conn=None) -> dict:
+    """
+    Authorize access to a specific learner's data.
+    Enforces IDOR protection, session ownership, and legacy isolation.
+
+    Rules:
+    1. If learner does not exist: raises 404 Not Found.
+    2. If learner has user_id IS NOT NULL (registered user profile):
+       - If unauthenticated: raises 401 Unauthorized.
+       - If authenticated user id != learner.user_id: raises 403 Forbidden (cross-user IDOR access blocked).
+       - If state-changing method (POST, PATCH, PUT, DELETE): enforces CSRF verification.
+    3. If learner has user_id IS NULL (legacy demo record):
+       - If authenticated: raises 403 Forbidden (legacy demo records are strictly isolated from user accounts).
+       - If unauthenticated: allowed for read/demo access.
+
+    Returns the learner row as a dictionary.
+    """
+    close_conn = False
+    if conn is None:
+        conn = get_db()
+        close_conn = True
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT id, name, education, target_role, user_id FROM learners WHERE id = ?", (learner_id,))
+        learner = cur.fetchone()
+        if not learner:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Learner not found")
+
+        learner_dict = dict(learner)
+        learner_owner_id = learner_dict.get("user_id")
+        current_user = get_current_user(request)
+
+        # Case A: Learner belongs to a registered user
+        if learner_owner_id is not None:
+            if not current_user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication required to access this learner profile",
+                )
+            if current_user["id"] != learner_owner_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: you do not have permission to access this learner profile",
+                )
+            # Enforce CSRF on state changes
+            if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+                submitted_csrf = request.headers.get(CSRF_HEADER_NAME)
+                expected_csrf = current_user.get("csrf_token")
+                if not submitted_csrf or not expected_csrf or not secrets.compare_digest(submitted_csrf, expected_csrf):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Invalid or missing CSRF token",
+                    )
+
+        # Case B: Legacy demo record (user_id IS NULL)
+        else:
+            if current_user:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: legacy demo records are isolated from registered user accounts",
+                )
+            # Unauthenticated guest demo access is allowed
+
+        return learner_dict
+    finally:
+        if close_conn:
+            conn.close()
 

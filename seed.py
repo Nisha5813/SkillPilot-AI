@@ -121,6 +121,24 @@ def run_seed():
         cur.execute("SELECT count(*) FROM roadmap_items;")
         roadmap_count = cur.fetchone()[0]
     conn.close()
+
+    if learners_count == 0:
+        print("   [Seed] Fresh database detected. Creating initial Demo Student #1...")
+        from orchestrator import Orchestrator
+        orch = Orchestrator()
+        orch.create_learner(
+            name="Demo Student",
+            education="B.S. Computer Science",
+            target_role="Full Stack Developer",
+            skills=[
+                {"skill": "Python", "claimed_level": "Intermediate"},
+                {"skill": "SQL", "claimed_level": "Intermediate"},
+                {"skill": "HTML", "claimed_level": "Beginner"},
+            ],
+            user_id=None,
+        )
+        learners_count = 1
+
     print(f"   [DB Ready] Existing user records preserved:")
     print(f"     - Learners: {learners_count}")
     print(f"     - Past Assessments: {assessments_count}")

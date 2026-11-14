@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from auth import (
     CSRF_HEADER_NAME,
     SESSION_COOKIE_NAME,
+    authorize_learner_access,
     clear_auth_cookies,
     create_session,
     delete_session,
@@ -122,6 +123,25 @@ class RoadmapPatchRequest(BaseModel):
 @app.on_event("startup")
 def startup_event():
     init_db()
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT count(*) FROM learners")
+        cnt = cur.fetchone()[0]
+        if cnt == 0:
+            orchestrator.create_learner(
+                name="Demo Student",
+                education="B.S. Computer Science",
+                target_role="Full Stack Developer",
+                skills=[
+                    {"skill": "Python", "claimed_level": "Intermediate"},
+                    {"skill": "SQL", "claimed_level": "Intermediate"},
+                    {"skill": "HTML", "claimed_level": "Beginner"},
+                ],
+                user_id=None,
+            )
+    finally:
+        conn.close()
 
 
 # Frontend Routes
@@ -323,47 +343,41 @@ def create_learner(payload: CreateLearnerRequest, request: Request):
 
 # 2. GET /api/learners/{id}
 @app.get("/api/learners/{id}")
-def get_learner(id: int):
+def get_learner(id: int, request: Request):
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id, name, education, target_role FROM learners WHERE id = ?", (id,))
-    learner = cur.fetchone()
-    if not learner:
+    try:
+        learner = authorize_learner_access(id, request, conn)
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, skill, claimed_level, validated_level FROM learner_skills WHERE learner_id = ?",
+            (id,),
+        )
+        skills = [dict(row) for row in cur.fetchall()]
+        data = dict(learner)
+        data["skills"] = skills
+        return success_response(data)
+    finally:
         conn.close()
-        return error_response("Learner not found", status_code=status.HTTP_404_NOT_FOUND)
-
-    cur.execute(
-        "SELECT id, skill, claimed_level, validated_level FROM learner_skills WHERE learner_id = ?",
-        (id,),
-    )
-    skills = [dict(row) for row in cur.fetchall()]
-    conn.close()
-
-    data = dict(learner)
-    data["skills"] = skills
-    return success_response(data)
 
 
 # 3. GET /api/learners/{id}/gap
 @app.get("/api/learners/{id}/gap")
-def get_learner_gap(id: int):
+def get_learner_gap(id: int, request: Request):
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT target_role FROM learners WHERE id = ?", (id,))
-    learner = cur.fetchone()
-    if not learner:
-        conn.close()
-        return error_response("Learner not found", status_code=status.HTTP_404_NOT_FOUND)
+    try:
+        learner = authorize_learner_access(id, request, conn)
+        target_role = learner["target_role"]
 
-    target_role = learner["target_role"]
-    cur.execute(
-        "SELECT skill, claimed_level, validated_level FROM learner_skills WHERE learner_id = ?",
-        (id,),
-    )
-    skills_rows = [dict(r) for r in cur.fetchall()]
-    cur.execute("SELECT skill, score, weak_concepts FROM assessments WHERE learner_id = ?", (id,))
-    assessments_rows = [dict(r) for r in cur.fetchall()]
-    conn.close()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT skill, claimed_level, validated_level FROM learner_skills WHERE learner_id = ?",
+            (id,),
+        )
+        skills_rows = [dict(r) for r in cur.fetchall()]
+        cur.execute("SELECT skill, score, weak_concepts FROM assessments WHERE learner_id = ?", (id,))
+        assessments_rows = [dict(r) for r in cur.fetchall()]
+    finally:
+        conn.close()
 
     skill_analyst_out = orchestrator.skill_analyst.run({
         "skills": skills_rows,
@@ -383,39 +397,36 @@ def get_learner_gap(id: int):
 
 # 4. GET /api/learners/{id}/roadmap
 @app.get("/api/learners/{id}/roadmap")
-def get_learner_roadmap(id: int, archived: Optional[int] = 0):
+def get_learner_roadmap(id: int, request: Request, archived: Optional[int] = 0):
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM learners WHERE id = ?", (id,))
-    if not cur.fetchone():
+    try:
+        authorize_learner_access(id, request, conn)
+        cur = conn.cursor()
+
+        if archived == 1:
+            cur.execute(
+                """
+                SELECT id, skill, resource_title, resource_type, status, position, is_remedial, archived
+                FROM roadmap_items
+                WHERE learner_id = ? AND archived = 1
+                ORDER BY id ASC
+                """,
+                (id,),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT id, skill, resource_title, resource_type, status, position, is_remedial, archived
+                FROM roadmap_items
+                WHERE learner_id = ? AND archived = 0 AND status = 'pending'
+                ORDER BY position ASC, id ASC
+                """,
+                (id,),
+            )
+
+        rows = cur.fetchall()
+    finally:
         conn.close()
-        return error_response("Learner not found", status_code=status.HTTP_404_NOT_FOUND)
-
-    if archived == 1:
-        # Retrieve archived incomplete items from previous career goals
-        cur.execute(
-            """
-            SELECT id, skill, resource_title, resource_type, status, position, is_remedial, archived
-            FROM roadmap_items
-            WHERE learner_id = ? AND archived = 1
-            ORDER BY id ASC
-            """,
-            (id,),
-        )
-    else:
-        # Retrieve active pending items for the current active career role
-        cur.execute(
-            """
-            SELECT id, skill, resource_title, resource_type, status, position, is_remedial, archived
-            FROM roadmap_items
-            WHERE learner_id = ? AND archived = 0 AND status = 'pending'
-            ORDER BY position ASC, id ASC
-            """,
-            (id,),
-        )
-
-    rows = cur.fetchall()
-    conn.close()
 
     items = []
     for idx, row in enumerate(rows, start=1):
@@ -434,42 +445,44 @@ def get_learner_roadmap(id: int, archived: Optional[int] = 0):
 
 
 @app.get("/api/learners/{id}/roadmap/archived")
-def get_learner_archived_roadmap(id: int):
-    return get_learner_roadmap(id=id, archived=1)
+def get_learner_archived_roadmap(id: int, request: Request):
+    return get_learner_roadmap(id=id, request=request, archived=1)
 
 
 # 5. PATCH /api/learners/{id}/roadmap/{item_id} (mark completed)
 @app.patch("/api/learners/{id}/roadmap/{item_id}")
-def mark_roadmap_item(id: int, item_id: int, payload: Optional[RoadmapPatchRequest] = None):
+def mark_roadmap_item(id: int, item_id: int, request: Request, payload: Optional[RoadmapPatchRequest] = None):
     new_status = payload.status if payload and payload.status else "completed"
     if new_status not in ("pending", "completed"):
         return error_response("Invalid status (must be pending or completed)", status_code=400)
 
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT id, resource_title, skill FROM roadmap_items WHERE id = ? AND learner_id = ?",
-        (item_id, id),
-    )
-    item = cur.fetchone()
-    if not item:
-        conn.close()
-        return error_response("Roadmap item not found for learner", status_code=status.HTTP_404_NOT_FOUND)
-
-    title = item["resource_title"]
-    skill = item["skill"]
-
-    with conn:
+    try:
+        authorize_learner_access(id, request, conn)
+        cur = conn.cursor()
         cur.execute(
-            "UPDATE roadmap_items SET status = ? WHERE id = ? AND learner_id = ?",
-            (new_status, item_id, id),
+            "SELECT id, resource_title, skill FROM roadmap_items WHERE id = ? AND learner_id = ?",
+            (item_id, id),
         )
-        if new_status == "completed":
+        item = cur.fetchone()
+        if not item:
+            return error_response("Roadmap item not found for learner", status_code=status.HTTP_404_NOT_FOUND)
+
+        title = item["resource_title"]
+        skill = item["skill"]
+
+        with conn:
             cur.execute(
-                "INSERT INTO events (learner_id, message) VALUES (?, ?)",
-                (id, f"Completed learning activity: '{title}' for {skill}."),
+                "UPDATE roadmap_items SET status = ? WHERE id = ? AND learner_id = ?",
+                (new_status, item_id, id),
             )
-    conn.close()
+            if new_status == "completed":
+                cur.execute(
+                    "INSERT INTO events (learner_id, message) VALUES (?, ?)",
+                    (id, f"Completed learning activity: '{title}' for {skill}."),
+                )
+    finally:
+        conn.close()
 
     return success_response({"id": item_id, "status": new_status, "resource_title": title})
 
@@ -482,7 +495,6 @@ def get_assessment_questions(skill: str):
     if not questions:
         return error_response(f"No assessment found for skill '{skill}'", status_code=status.HTTP_404_NOT_FOUND)
 
-    # Server-side safety: strip correct_answer and concept from response
     public_questions = [
         {
             "id": q["id"],
@@ -496,14 +508,12 @@ def get_assessment_questions(skill: str):
 
 # 7. POST /api/learners/{id}/assessments
 @app.post("/api/learners/{id}/assessments")
-def submit_learner_assessment(id: int, payload: SubmitAssessmentRequest):
+def submit_learner_assessment(id: int, payload: SubmitAssessmentRequest, request: Request):
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM learners WHERE id = ?", (id,))
-    if not cur.fetchone():
+    try:
+        authorize_learner_access(id, request, conn)
+    finally:
         conn.close()
-        return error_response("Learner not found", status_code=status.HTTP_404_NOT_FOUND)
-    conn.close()
 
     try:
         res = orchestrator.submit_assessment(
@@ -518,7 +528,13 @@ def submit_learner_assessment(id: int, payload: SubmitAssessmentRequest):
 
 # 8. POST /api/learners/{id}/target-role
 @app.post("/api/learners/{id}/target-role")
-def change_learner_target_role(id: int, payload: TargetRoleRequest):
+def change_learner_target_role(id: int, payload: TargetRoleRequest, request: Request):
+    conn = get_db()
+    try:
+        authorize_learner_access(id, request, conn)
+    finally:
+        conn.close()
+
     try:
         res = orchestrator.change_target_role(learner_id=id, new_role=payload.role)
         return success_response(res)
@@ -528,7 +544,13 @@ def change_learner_target_role(id: int, payload: TargetRoleRequest):
 
 # 9. GET /api/learners/{id}/progress
 @app.get("/api/learners/{id}/progress")
-def get_learner_progress(id: int):
+def get_learner_progress(id: int, request: Request):
+    conn = get_db()
+    try:
+        authorize_learner_access(id, request, conn)
+    finally:
+        conn.close()
+
     try:
         prog = orchestrator.compute_readiness(learner_id=id)
         return success_response(prog)
@@ -538,14 +560,12 @@ def get_learner_progress(id: int):
 
 # 10. GET /api/learners/{id}/agent-log
 @app.get("/api/learners/{id}/agent-log")
-def get_learner_agent_log(id: int):
+def get_learner_agent_log(id: int, request: Request):
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM learners WHERE id = ?", (id,))
-    if not cur.fetchone():
+    try:
+        authorize_learner_access(id, request, conn)
+    finally:
         conn.close()
-        return error_response("Learner not found", status_code=status.HTTP_404_NOT_FOUND)
-    conn.close()
 
     logs = orchestrator.get_latest_agent_logs(learner_id=id)
     return success_response(logs)
@@ -553,12 +573,12 @@ def get_learner_agent_log(id: int):
 
 # 11. POST /api/mentor
 @app.post("/api/mentor")
-def ask_mentor(payload: MentorQuestionRequest):
+def ask_mentor(payload: MentorQuestionRequest, request: Request):
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT name, target_role FROM learners WHERE id = ?", (payload.learner_id,))
-    learner = cur.fetchone()
-    conn.close()
+    try:
+        learner = authorize_learner_access(payload.learner_id, request, conn)
+    finally:
+        conn.close()
 
     learner_name = learner["name"] if learner else "Learner"
     target_role = learner["target_role"] if learner else "Software Engineer"
@@ -599,5 +619,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)

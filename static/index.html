@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillPilot AI — Understand Your Skills. Discover Your Gaps. Navigate Your Career.</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .badge-remedial {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-indigo-900 text-white shadow-md border-b border-indigo-700">
+    <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center font-black text-xl shadow">
+            SP
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight">SKILLPILOT AI</h1>
+            <p class="text-indigo-200 text-xs sm:text-sm font-medium">
+              Understand Your Skills. Discover Your Gaps. Navigate Your Career.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-800 text-indigo-200 border border-indigo-600">
+          Solo Hackathon (Promptwar)
+        </span>
+        <button id="btn-quick-demo" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow transition">
+          Auto-Fill Demo Student
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+
+    <!-- Active Learner Banner -->
+    <div id="active-learner-banner" class="hidden bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
+          <span id="banner-avatar">DS</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 id="banner-name" class="font-bold text-slate-900 text-lg">Demo Student</h2>
+            <span id="banner-role-badge" class="px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800">Full Stack Developer</span>
+          </div>
+          <p id="banner-sub" class="text-xs text-slate-500">Learner ID: #1 | Education: B.S. Computer Science</p>
+        </div>
+      </div>
+      
+      <!-- Career Switch Widget -->
+      <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+        <label for="switch-role-select" class="text-xs font-semibold text-slate-600">Career Pivot:</label>
+        <select id="switch-role-select" class="text-xs border border-slate-300 rounded px-2 py-1 bg-white focus:ring-1 focus:ring-indigo-500">
+          <!-- Populated dynamically -->
+        </select>
+        <button id="btn-switch-role" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1 rounded shadow transition">
+          Switch Goal
+        </button>
+      </div>
+    </div>
+
+    <!-- Section 1: Profile Creation Form (Hidden once created) -->
+    <section id="section-create-profile" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div class="border-b border-slate-100 pb-4 mb-6">
+        <h2 class="text-lg font-bold text-slate-900">1. Student Profile & Baseline Skills</h2>
+        <p class="text-xs text-slate-500">Enter your background and self-reported skills to begin multi-agent career mapping.</p>
+      </div>
+
+      <form id="form-create-learner" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+            <input type="text" id="input-name" required value="Demo Student" placeholder="e.g. Alex Johnson"
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Education Background</label>
+            <input type="text" id="input-education" value="B.S. Computer Science" placeholder="e.g. Self-taught, B.S. CS"
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Target Career Goal</label>
+            <select id="select-target-role" required
+              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <!-- Populated via API -->
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-semibold text-slate-700">Self-Reported Current Skills</label>
+            <button type="button" id="btn-add-skill-row" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+              + Add Another Skill
+            </button>
+          </div>
+          <div id="skills-rows-container" class="space-y-2">
+            <!-- Default pre-loaded rows matching sample scenario -->
+            <div class="skill-row flex items-center gap-3">
+              <input type="text" placeholder="Skill (e.g. Python)" value="Python" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+              <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate" selected>Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+              <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+            </div>
+            <div class="skill-row flex items-center gap-3">
+              <input type="text" placeholder="Skill (e.g. SQL)" value="SQL" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+              <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate" selected>Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+              <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+            </div>
+            <div class="skill-row flex items-center gap-3">
+              <input type="text" placeholder="Skill (e.g. HTML)" value="HTML" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+              <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+                <option value="Beginner" selected>Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+              <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+          <button type="submit" id="btn-submit-profile" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow transition flex items-center gap-2">
+            <span>Analyze Gaps & Generate Roadmap</span> &rarr;
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Dashboard Content (Visible after creation) -->
+    <div id="dashboard-content" class="space-y-8 hidden">
+
+      <!-- Mentor Alert Banner -->
+      <div id="mentor-box" class="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-l-4 border-indigo-600 p-4 rounded-xl shadow-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">🤖</span>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-slate-900">Career Mentor Guidance</h3>
+                <span id="mentor-source-badge" class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 border border-indigo-200">template</span>
+              </div>
+              <p id="mentor-text" class="text-xs sm:text-sm text-slate-700 mt-1 leading-relaxed">
+                Loading mentorship insights...
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- Ask Mentor Input -->
+        <div class="mt-3 pt-3 border-t border-indigo-100 flex gap-2">
+          <input type="text" id="mentor-question-input" placeholder="Ask your Career Mentor a question (e.g. How to prepare for backend interviews?)"
+            class="flex-1 text-xs border border-indigo-200 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+          <button id="btn-ask-mentor" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-1.5 rounded-md transition shadow">
+            Ask Mentor
+          </button>
+        </div>
+      </div>
+
+      <!-- 2-Column: Gaps & Readiness -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Gap Analysis (2 cols) -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Skill Gap Analysis</h3>
+              <p class="text-xs text-slate-500">Target Role Requirements vs. Evaluated Skills</p>
+            </div>
+            <span id="gap-role-title" class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md">Full Stack Developer</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <!-- Missing Skills -->
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-red-800 uppercase tracking-wider">Missing Skills</span>
+                <span id="badge-count-missing" class="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">0</span>
+              </div>
+              <div id="gap-missing-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
+                <span class="text-xs text-slate-400 italic">None</span>
+              </div>
+            </div>
+
+            <!-- Weak Skills -->
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Weak / Developing</span>
+                <span id="badge-count-weak" class="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">0</span>
+              </div>
+              <div id="gap-weak-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
+                <span class="text-xs text-slate-400 italic">None</span>
+              </div>
+            </div>
+
+            <!-- Transferable Skills -->
+            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-blue-800 uppercase tracking-wider">Transferable / Retained</span>
+                <span id="badge-count-transferable" class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">0</span>
+              </div>
+              <div id="gap-transferable-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
+                <span class="text-xs text-slate-400 italic">None</span>
+              </div>
+            </div>
+
+            <!-- Strong Skills -->
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Verified Strong</span>
+                <span id="badge-count-strong" class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">0</span>
+              </div>
+              <div id="gap-strong-container" class="flex flex-wrap gap-1.5 min-h-[32px]">
+                <span class="text-xs text-slate-400 italic">None</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Readiness Score Card (1 col) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+          <div>
+            <div class="border-b border-slate-100 pb-2 mb-3">
+              <h3 class="text-base font-bold text-slate-900">Role Readiness</h3>
+              <p class="text-[11px] text-slate-500">Capped at Intermediate until skill is assessed</p>
+            </div>
+
+            <!-- Big Percentage Display -->
+            <div class="py-4 text-center">
+              <div class="inline-flex items-baseline justify-center">
+                <span id="readiness-value" class="text-5xl font-black text-indigo-700">0.0</span>
+                <span class="text-2xl font-bold text-indigo-500 ml-1">%</span>
+              </div>
+              <!-- Mandatory Label from Section 5 -->
+              <p id="readiness-label" class="text-[11px] font-semibold text-slate-500 mt-2 bg-slate-50 border border-slate-200 p-2 rounded">
+                Estimated indicator, not a guaranteed job-readiness score.
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick breakdown summary -->
+          <div class="text-xs border-t border-slate-100 pt-3 space-y-1.5">
+            <div class="flex justify-between text-slate-600">
+              <span>Completed Activities:</span>
+              <span id="completed-count" class="font-bold text-slate-800">0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Validated Assessments:</span>
+              <span id="validated-count" class="font-bold text-slate-800">0</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 2-Column: Roadmap & Assessment Panel -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Personalized Roadmap (2 cols) -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Personalized Learning Roadmap</h3>
+              <p class="text-xs text-slate-500">Prerequisite-ordered milestones. Remedial resources appear at the top.</p>
+            </div>
+            <button id="btn-refresh-roadmap" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+              Refresh
+            </button>
+          </div>
+
+          <div id="roadmap-list" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+            <!-- Dynamically populated roadmap cards -->
+            <p class="text-xs text-slate-400 italic">No roadmap items generated yet.</p>
+          </div>
+        </div>
+
+        <!-- Assessments & Testing (1 col) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <h3 class="text-base font-bold text-slate-900">Skill Assessment</h3>
+            <p class="text-xs text-slate-500">Validate proficiency to unlock higher readiness credits.</p>
+          </div>
+
+          <!-- Assessment Controls -->
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Select Skill to Assess</label>
+              <div class="flex gap-2">
+                <select id="select-assessment-skill" class="flex-1 text-xs border border-slate-300 rounded px-2 py-1.5 bg-white">
+                  <option value="JavaScript" selected>JavaScript</option>
+                  <option value="React">React</option>
+                  <option value="Node.js">Node.js</option>
+                </select>
+                <button id="btn-load-assessment" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-3 py-1.5 rounded transition">
+                  Load Questions
+                </button>
+              </div>
+            </div>
+
+            <!-- Demo Shortcut for Score < 50 -->
+            <div class="bg-amber-50 border border-amber-200 p-2.5 rounded text-xs flex items-center justify-between gap-2">
+              <span class="text-amber-800 font-medium">Demo Shortcut:</span>
+              <button id="btn-demo-fail-answers" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[11px] font-semibold transition">
+                Select Poor Answers (&lt;50%)
+              </button>
+            </div>
+
+            <!-- Questions Container -->
+            <div id="assessment-questions-container" class="space-y-4 max-h-[320px] overflow-y-auto pr-1 hidden">
+              <!-- Rendered Questions -->
+            </div>
+
+            <div id="assessment-submit-area" class="hidden pt-2">
+              <button id="btn-submit-assessment" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2 rounded shadow transition">
+                Submit Assessment
+              </button>
+            </div>
+
+            <!-- Assessment Result Feedback -->
+            <div id="assessment-result-box" class="hidden p-3 rounded-lg border text-xs space-y-1.5">
+              <!-- Dynamically populated after submit -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Agent Activity Log (Full Width) -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Multi-Agent Execution Log</h3>
+            <p class="text-xs text-slate-500">Real-time structured handoffs across specialized agents for the latest run.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="agent-run-id" class="text-xs font-mono bg-slate-100 px-2 py-1 rounded text-slate-700 font-semibold">run_id: none</span>
+            <button id="btn-refresh-agent-log" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+              Refresh Log
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3">Agent</th>
+                <th class="py-2.5 px-3">Task</th>
+                <th class="py-2.5 px-3">Status</th>
+                <th class="py-2.5 px-3">Duration</th>
+                <th class="py-2.5 px-3">Input Summary</th>
+                <th class="py-2.5 px-3">Output Result</th>
+              </tr>
+            </thead>
+            <tbody id="agent-log-tbody" class="divide-y divide-slate-100 font-mono">
+              <tr>
+                <td colspan="6" class="py-4 text-center text-slate-400 font-sans italic">
+                  No orchestrator runs recorded yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Completed Activities & Historical Audit Events -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Completed Learning Activities -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+          <div class="border-b border-slate-100 pb-2">
+            <h3 class="text-sm font-bold text-slate-900">Completed Learning Activities</h3>
+            <p class="text-xs text-slate-500">Tracked separately from role readiness score.</p>
+          </div>
+          <div id="completed-activities-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1 text-xs">
+            <p class="text-slate-400 italic">No completed activities yet. Check boxes on your roadmap to complete items.</p>
+          </div>
+        </div>
+
+        <!-- Event History -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+          <div class="border-b border-slate-100 pb-2">
+            <h3 class="text-sm font-bold text-slate-900">Event Audit Log</h3>
+            <p class="text-xs text-slate-500">Immutable chronological events recorded in database.</p>
+          </div>
+          <div id="event-history-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1 text-xs">
+            <p class="text-slate-400 italic">No events logged yet.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>SkillPilot AI &copy; 2026 — Promptwar Hackathon Submission</p>
+      <p class="text-[11px] text-slate-400">Deterministic Multi-Agent Learning System &bull; SQLite3 &bull; FastAPI &bull; Vanilla JS</p>
+    </div>
+  </footer>
+
+  <!-- Vanilla JavaScript Application Logic -->
+  <script>
+    let currentLearnerId = null;
+    let rolesCatalog = {};
+    let loadedQuestions = [];
+
+    // --- DOM Elements ---
+    const selectTargetRole = document.getElementById("select-target-role");
+    const switchRoleSelect = document.getElementById("switch-role-select");
+    const skillsContainer = document.getElementById("skills-rows-container");
+    const formCreateLearner = document.getElementById("form-create-learner");
+    const sectionCreateProfile = document.getElementById("section-create-profile");
+    const dashboardContent = document.getElementById("dashboard-content");
+    const activeLearnerBanner = document.getElementById("active-learner-banner");
+
+    // Banner Elements
+    const bannerName = document.getElementById("banner-name");
+    const bannerRoleBadge = document.getElementById("banner-role-badge");
+    const bannerSub = document.getElementById("banner-sub");
+    const bannerAvatar = document.getElementById("banner-avatar");
+
+    // Gap Badges
+    const gapMissingContainer = document.getElementById("gap-missing-container");
+    const gapWeakContainer = document.getElementById("gap-weak-container");
+    const gapTransferableContainer = document.getElementById("gap-transferable-container");
+    const gapStrongContainer = document.getElementById("gap-strong-container");
+    const badgeCountMissing = document.getElementById("badge-count-missing");
+    const badgeCountWeak = document.getElementById("badge-count-weak");
+    const badgeCountTransferable = document.getElementById("badge-count-transferable");
+    const badgeCountStrong = document.getElementById("badge-count-strong");
+    const gapRoleTitle = document.getElementById("gap-role-title");
+
+    // Readiness
+    const readinessValue = document.getElementById("readiness-value");
+    const readinessLabel = document.getElementById("readiness-label");
+    const completedCount = document.getElementById("completed-count");
+    const validatedCount = document.getElementById("validated-count");
+
+    // Roadmap
+    const roadmapList = document.getElementById("roadmap-list");
+
+    // Mentor
+    const mentorText = document.getElementById("mentor-text");
+    const mentorSourceBadge = document.getElementById("mentor-source-badge");
+    const mentorQuestionInput = document.getElementById("mentor-question-input");
+
+    // Assessment
+    const selectAssessmentSkill = document.getElementById("select-assessment-skill");
+    const assessmentQuestionsContainer = document.getElementById("assessment-questions-container");
+    const assessmentSubmitArea = document.getElementById("assessment-submit-area");
+    const assessmentResultBox = document.getElementById("assessment-result-box");
+
+    // Agent Log
+    const agentRunId = document.getElementById("agent-run-id");
+    const agentLogTbody = document.getElementById("agent-log-tbody");
+
+    // Lists
+    const completedActivitiesList = document.getElementById("completed-activities-list");
+    const eventHistoryList = document.getElementById("event-history-list");
+
+    // --- 1. Init & Fetch Roles ---
+    async function loadRoles() {
+      try {
+        const res = await fetch("/api/roles");
+        const json = await res.json();
+        if (json.ok) {
+          rolesCatalog = json.data;
+          selectTargetRole.innerHTML = "";
+          switchRoleSelect.innerHTML = "";
+          Object.keys(rolesCatalog).forEach(role => {
+            const opt1 = document.createElement("option");
+            opt1.value = role;
+            opt1.textContent = role;
+            selectTargetRole.appendChild(opt1);
+
+            const opt2 = document.createElement("option");
+            opt2.value = role;
+            opt2.textContent = role;
+            switchRoleSelect.appendChild(opt2);
+          });
+          selectTargetRole.value = "Full Stack Developer";
+        }
+      } catch (err) {
+        console.error("Failed to load roles", err);
+      }
+    }
+
+    // --- 2. Add / Remove Skill Rows ---
+    document.getElementById("btn-add-skill-row").addEventListener("click", () => {
+      const row = document.createElement("div");
+      row.className = "skill-row flex items-center gap-3";
+      row.innerHTML = `
+        <input type="text" placeholder="Skill Name" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-indigo-500">
+        <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate" selected>Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+        <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+      `;
+      skillsContainer.appendChild(row);
+      row.querySelector(".btn-remove-row").addEventListener("click", () => row.remove());
+    });
+
+    skillsContainer.querySelectorAll(".btn-remove-row").forEach(btn => {
+      btn.addEventListener("click", (e) => e.target.closest(".skill-row").remove());
+    });
+
+    // --- 3. Quick Demo Preset ---
+    document.getElementById("btn-quick-demo").addEventListener("click", () => {
+      document.getElementById("input-name").value = "Demo Student";
+      document.getElementById("input-education").value = "B.S. Computer Science";
+      selectTargetRole.value = "Full Stack Developer";
+      skillsContainer.innerHTML = `
+        <div class="skill-row flex items-center gap-3">
+          <input type="text" value="Python" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5">
+          <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+            <option value="Intermediate" selected>Intermediate</option>
+          </select>
+          <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+        </div>
+        <div class="skill-row flex items-center gap-3">
+          <input type="text" value="SQL" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5">
+          <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+            <option value="Intermediate" selected>Intermediate</option>
+          </select>
+          <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+        </div>
+        <div class="skill-row flex items-center gap-3">
+          <input type="text" value="HTML" class="skill-name flex-1 text-sm border border-slate-300 rounded-md px-3 py-1.5">
+          <select class="skill-level text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white">
+            <option value="Beginner" selected>Beginner</option>
+          </select>
+          <button type="button" class="btn-remove-row text-slate-400 hover:text-red-500 text-sm font-bold px-2">&times;</button>
+        </div>
+      `;
+      skillsContainer.querySelectorAll(".btn-remove-row").forEach(btn => {
+        btn.addEventListener("click", (e) => e.target.closest(".skill-row").remove());
+      });
+    });
+
+    // --- 4. Submit Profile Form ---
+    formCreateLearner.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("input-name").value.trim();
+      const education = document.getElementById("input-education").value.trim();
+      const targetRole = selectTargetRole.value;
+
+      const skills = [];
+      skillsContainer.querySelectorAll(".skill-row").forEach(row => {
+        const sName = row.querySelector(".skill-name").value.trim();
+        const sLevel = row.querySelector(".skill-level").value;
+        if (sName) {
+          skills.push({ skill: sName, claimed_level: sLevel });
+        }
+      });
+
+      try {
+        const res = await fetch("/api/learners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, education, target_role: targetRole, skills })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          currentLearnerId = json.data.learner_id;
+          setupLearnerUI(name, education, targetRole);
+          await refreshAllData();
+        } else {
+          alert("Error: " + json.error);
+        }
+      } catch (err) {
+        console.error("Submission failed", err);
+        alert("Failed to create profile. Ensure backend is running.");
+      }
+    });
+
+    function setupLearnerUI(name, education, role) {
+      bannerName.textContent = name;
+      bannerRoleBadge.textContent = role;
+      bannerSub.textContent = `Learner ID: #${currentLearnerId} | Education: ${education || 'General'}`;
+      bannerAvatar.textContent = name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+      gapRoleTitle.textContent = role;
+
+      activeLearnerBanner.classList.remove("hidden");
+      dashboardContent.classList.remove("hidden");
+      sectionCreateProfile.classList.add("hidden");
+
+      // Set switch select to other role
+      const otherRole = Object.keys(rolesCatalog).find(r => r !== role);
+      if (otherRole) switchRoleSelect.value = otherRole;
+    }
+
+    // --- 5. Refresh All Dashboard Data ---
+    async function refreshAllData() {
+      if (!currentLearnerId) return;
+      await Promise.all([
+        refreshGap(),
+        refreshRoadmap(),
+        refreshProgress(),
+        refreshAgentLog()
+      ]);
+    }
+
+    // --- 6. Refresh Gap Analysis ---
+    async function refreshGap() {
+      try {
+        const res = await fetch(`/api/learners/${currentLearnerId}/gap`);
+        const json = await res.json();
+        if (json.ok) {
+          const gap = json.data;
+          renderBadges(gapMissingContainer, gap.missing, "bg-red-100 text-red-800 border-red-200");
+          renderBadges(gapWeakContainer, gap.weak, "bg-amber-100 text-amber-800 border-amber-200");
+          renderBadges(gapTransferableContainer, gap.transferable, "bg-blue-100 text-blue-800 border-blue-200");
+          renderBadges(gapStrongContainer, gap.transferable, "bg-emerald-100 text-emerald-800 border-emerald-200");
+
+          badgeCountMissing.textContent = gap.missing.length;
+          badgeCountWeak.textContent = gap.weak.length;
+          badgeCountTransferable.textContent = gap.transferable.length;
+          badgeCountStrong.textContent = gap.transferable.length;
+        }
+      } catch (e) {
+        console.error("Error refreshing gap", e);
+      }
+    }
+
+    function renderBadges(container, items, badgeClass) {
+      container.innerHTML = "";
+      if (!items || items.length === 0) {
+        container.innerHTML = '<span class="text-xs text-slate-400 italic">None</span>';
+        return;
+      }
+      items.forEach(item => {
+        const badge = document.createElement("span");
+        badge.className = `inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${badgeClass}`;
+        badge.textContent = item;
+        container.appendChild(badge);
+      });
+    }
+
+    // --- 7. Refresh Roadmap ---
+    async function refreshRoadmap() {
+      try {
+        const res = await fetch(`/api/learners/${currentLearnerId}/roadmap`);
+        const json = await res.json();
+        if (json.ok) {
+          const items = json.data;
+          roadmapList.innerHTML = "";
+          if (items.length === 0) {
+            roadmapList.innerHTML = '<p class="text-xs text-slate-400 italic">No pending items in roadmap.</p>';
+            return;
+          }
+
+          items.forEach(item => {
+            const card = document.createElement("div");
+            const isCompleted = item.status === "completed";
+            const isRemedial = item.is_remedial;
+
+            card.className = `p-3 rounded-lg border transition flex items-start justify-between gap-3 ${
+              isRemedial
+                ? "bg-red-50 border-red-300 shadow-sm"
+                : isCompleted
+                ? "bg-slate-50 border-slate-200 opacity-70"
+                : "bg-white border-slate-200 hover:border-indigo-300"
+            }`;
+
+            card.innerHTML = `
+              <div class="flex items-start gap-3">
+                <input type="checkbox" ${isCompleted ? "checked disabled" : ""} data-id="${item.id}"
+                  class="checkbox-complete-item mt-1 rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-bold font-mono text-slate-500">#${item.position}</span>
+                    <span class="text-xs font-bold text-slate-900 ${isCompleted ? 'line-through text-slate-500' : ''}">
+                      ${item.resource_title}
+                    </span>
+                    ${
+                      isRemedial
+                        ? '<span class="badge-remedial px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-red-600 text-white">Remedial Focus</span>'
+                        : ''
+                    }
+                  </div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">
+                      ${item.skill}
+                    </span>
+                    <span class="text-[11px] text-slate-400 uppercase tracking-wide font-medium">
+                      &bull; ${item.resource_type}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <span class="text-[11px] font-semibold uppercase px-2 py-0.5 rounded ${
+                isCompleted ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+              }">
+                ${item.status}
+              </span>
+            `;
+
+            roadmapList.appendChild(card);
+          });
+
+          // Bind completion handlers
+          roadmapList.querySelectorAll(".checkbox-complete-item:not([disabled])").forEach(cb => {
+            cb.addEventListener("change", async (e) => {
+              const itemId = e.target.getAttribute("data-id");
+              await markItemCompleted(itemId);
+            });
+          });
+        }
+      } catch (e) {
+        console.error("Error refreshing roadmap", e);
+      }
+    }
+
+    async function markItemCompleted(itemId) {
+      try {
+        const res = await fetch(`/api/learners/${currentLearnerId}/roadmap/${itemId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "completed" })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          await refreshAllData();
+        }
+      } catch (err) {
+        console.error("Failed to complete item", err);
+      }
+    }
+
+    document.getElementById("btn-refresh-roadmap").addEventListener("click", refreshRoadmap);
+
+    // --- 8. Refresh Progress & Readiness ---
+    async function refreshProgress() {
+      try {
+        const res = await fetch(`/api/learners/${currentLearnerId}/progress`);
+        const json = await res.json();
+        if (json.ok) {
+          const prog = json.data;
+          readinessValue.textContent = prog.readiness_percentage.toFixed(1);
+          readinessLabel.textContent = prog.label;
+          completedCount.textContent = prog.completed_activities.length;
+
+          // Render completed activities
+          completedActivitiesList.innerHTML = "";
+          if (prog.completed_activities.length === 0) {
+            completedActivitiesList.innerHTML = '<p class="text-slate-400 italic">No completed activities yet.</p>';
+          } else {
+            prog.completed_activities.forEach(act => {
+              const el = document.createElement("div");
+              el.className = "flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200";
+              el.innerHTML = `
+                <span class="font-medium text-slate-800">${act.resource_title}</span>
+                <span class="text-[10px] uppercase font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Completed</span>
+              `;
+              completedActivitiesList.appendChild(el);
+            });
+          }
+
+          // Render Event History
+          eventHistoryList.innerHTML = "";
+          if (prog.events.length === 0) {
+            eventHistoryList.innerHTML = '<p class="text-slate-400 italic">No events logged yet.</p>';
+          } else {
+            prog.events.forEach(ev => {
+              const el = document.createElement("div");
+              el.className = "p-2 rounded bg-slate-50 border border-slate-100 flex flex-col gap-0.5";
+              el.innerHTML = `
+                <span class="text-slate-700 font-medium">${ev.message}</span>
+                <span class="text-[10px] text-slate-400 font-mono">${ev.created_at}</span>
+              `;
+              eventHistoryList.appendChild(el);
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Error refreshing progress", e);
+      }
+    }
+
+    // --- 9. Assessments ---
+    document.getElementById("btn-load-assessment").addEventListener("click", async () => {
+      const skill = selectAssessmentSkill.value;
+      try {
+        const res = await fetch(`/api/assessments/${skill}`);
+        const json = await res.json();
+        if (json.ok) {
+          loadedQuestions = json.data.questions;
+          renderAssessmentQuestions(loadedQuestions);
+        } else {
+          alert("Error: " + json.error);
+        }
+      } catch (err) {
+        console.error("Failed to load questions", err);
+      }
+    });
+
+    function renderAssessmentQuestions(questions) {
+      assessmentQuestionsContainer.innerHTML = "";
+      assessmentResultBox.classList.add("hidden");
+
+      questions.forEach((q, qIdx) => {
+        const qDiv = document.createElement("div");
+        qDiv.className = "p-3 rounded-lg border border-slate-200 bg-slate-50 space-y-2";
+        qDiv.innerHTML = `
+          <p class="font-bold text-slate-900 text-xs">Q${qIdx + 1}: ${q.question}</p>
+          <div class="space-y-1.5 pl-1">
+            ${q.options.map((opt, optIdx) => `
+              <label class="flex items-start gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900">
+                <input type="radio" name="question_${q.id}" value="${opt}" class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
+                <span>${opt}</span>
+              </label>
+            `).join("")}
+          </div>
+        `;
+        assessmentQuestionsContainer.appendChild(qDiv);
+      });
+
+      assessmentQuestionsContainer.classList.remove("hidden");
+      assessmentSubmitArea.classList.remove("hidden");
+    }
+
+    // Demo shortcut for poor score (<50%)
+    document.getElementById("btn-demo-fail-answers").addEventListener("click", async () => {
+      if (loadedQuestions.length === 0) {
+        await document.getElementById("btn-load-assessment").click();
+      }
+      // Select incorrect answers intentionally (e.g. index 1 or 2)
+      loadedQuestions.forEach(q => {
+        const radios = document.querySelectorAll(`input[name="question_${q.id}"]`);
+        if (radios.length > 1) {
+          radios[1].checked = true; // select wrong option
+        }
+      });
+    });
+
+    document.getElementById("btn-submit-assessment").addEventListener("click", async () => {
+      const skill = selectAssessmentSkill.value;
+      const answers = {};
+
+      loadedQuestions.forEach(q => {
+        const selected = document.querySelector(`input[name="question_${q.id}"]:checked`);
+        if (selected) {
+          answers[q.id] = selected.value;
+        }
+      });
+
+      try {
+        const res = await fetch(`/api/learners/${currentLearnerId}/assessments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ skill, answers })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          const out = json.data;
+          showAssessmentResult(out);
+          await refreshAllData();
+        } else {
+          alert("Error: " + json.error);
+        }
+      } catch (err) {
+        console.error("Submission error", err);
+      }
+    });
+
+    function showAssessmentResult(out) {
+      assessmentResultBox.classList.remove("hidden");
+      const isPass = out.passed;
+      const isFail = out.score < 50;
+
+      assessmentResultBox.className = `p-3.5 rounded-lg border text-xs space-y-2 ${
+        isFail
+          ? "bg-red-50 border-red-300 text-red-900"
+          : isPass
+          ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+          : "bg-amber-50 border-amber-300 text-amber-900"
+      }`;
+
+      let weakNotice = "";
+      if (out.weak_concepts && out.weak_concepts.length > 0) {
+        weakNotice = `<div class="font-semibold text-red-700">Identified Weak Concepts: ${out.weak_concepts.join(", ")}</div>`;
+      }
+
+      let remedialNotice = "";
+      if (out.remedial_added && out.remedial_added.length > 0) {
+        remedialNotice = `<div class="font-bold text-red-800 bg-red-100 p-2 rounded border border-red-200">
+          ⚠️ Remedial resource added to TOP of roadmap: "${out.remedial_added[0]}"
+        </div>`;
+      }
+
+      assessmentResultBox.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-sm">Assessment Result: ${out.score}%</span>
+          <span class="font-black uppercase tracking-wider text-[10px] px-2 py-0.5 rounded ${
+            isFail ? 'bg-red-200 text-red-900' : isPass ? 'bg-emerald-200 text-emerald-900' : 'bg-amber-200 text-amber-900'
+          }">
+            ${isFail ? 'Needs Remediation (<50%)' : isPass ? 'Validated Advanced' : 'Validated Intermediate'}
+          </span>
+        </div>
+        ${weakNotice}
+        ${remedialNotice}
+        <p class="italic text-slate-700 text-[11px] mt-1">${out.mentor_message}</p>
+      `;
+
+      // Also update top mentor box
+      mentorText.textContent = out.mentor_message;
+      mentorSourceBadge.textContent = out.mentor_source || "template";
+    }
+
+    // --- 10. Switch Target Career Goal ---
+    document.getElementById("btn-switch-role").addEventListener("click", async () => {
+      const newRole = switchRoleSelect.value;
+      if (!confirm(`Switch career target to ${newRole}? Existing completed activities and assessments will be preserved.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/learners/${currentLearnerId}/target-role`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: newRole })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          const out = json.data;
+          bannerRoleBadge.textContent = newRole;
+          gapRoleTitle.textContent = newRole;
+
+          // Update switch role options
+          const otherRole = Object.keys(rolesCatalog).find(r => r !== newRole);
+          if (otherRole) switchRoleSelect.value = otherRole;
+
+          // Update mentor text
+          mentorText.textContent = out.mentor_message;
+          mentorSourceBadge.textContent = out.mentor_source || "template";
+
+          await refreshAllData();
+        } else {
+          alert("Error: " + json.error);
+        }
+      } catch (err) {
+        console.error("Failed to switch role", err);
+      }
+    });
+
+    // --- 11. Refresh Agent Activity Log ---
+    async function refreshAgentLog() {
+      try {
+        const res = await fetch(`/api/learners/${currentLearnerId}/agent-log`);
+        const json = await res.json();
+        if (json.ok) {
+          const logs = json.data;
+          agentLogTbody.innerHTML = "";
+          if (logs.length === 0) {
+            agentLogTbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 font-sans italic">No agent runs recorded.</td></tr>`;
+            agentRunId.textContent = "run_id: none";
+            return;
+          }
+
+          agentRunId.textContent = `run_id: ${logs[0].run_id}`;
+
+          logs.forEach(l => {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+            tr.innerHTML = `
+              <td class="py-2.5 px-3 font-bold text-indigo-900">${l.agent_name}</td>
+              <td class="py-2.5 px-3 text-slate-700">${l.task}</td>
+              <td class="py-2.5 px-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                  l.status === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                }">${l.status}</span>
+              </td>
+              <td class="py-2.5 px-3 text-slate-600 font-mono">${l.duration_ms}ms</td>
+              <td class="py-2.5 px-3 text-slate-500 text-[11px] max-w-[200px] truncate" title="${escapeHtml(l.input_summary)}">
+                ${escapeHtml(l.input_summary)}
+              </td>
+              <td class="py-2.5 px-3 text-slate-500 text-[11px] max-w-[220px] truncate" title="${escapeHtml(l.result_summary)}">
+                ${escapeHtml(l.result_summary)}
+              </td>
+            `;
+            agentLogTbody.appendChild(tr);
+          });
+        }
+      } catch (e) {
+        console.error("Error refreshing agent log", e);
+      }
+    }
+
+    document.getElementById("btn-refresh-agent-log").addEventListener("click", refreshAgentLog);
+
+    // --- 12. Ask Mentor Directly ---
+    document.getElementById("btn-ask-mentor").addEventListener("click", async () => {
+      const q = mentorQuestionInput.value.trim();
+      if (!q) return;
+
+      try {
+        const res = await fetch("/api/mentor", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ learner_id: currentLearnerId, question: q })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          mentorText.textContent = json.data.message;
+          mentorSourceBadge.textContent = json.data.source || "template";
+          mentorQuestionInput.value = "";
+          await refreshProgress();
+        }
+      } catch (err) {
+        console.error("Failed to query mentor", err);
+      }
+    });
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // Startup
+    loadRoles();
+  </script>
+</body>
+</html>

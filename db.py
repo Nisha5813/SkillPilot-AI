@@ -1,9 +1,22 @@
+import os
+import shutil
 import sqlite3
 from pathlib import Path
 from typing import Optional
 
 DB_FILE_NAME = "skillpilot.db"
-DEFAULT_DB_PATH = Path(__file__).resolve().parent / DB_FILE_NAME
+
+# Serverless environment (Vercel, AWS Lambda) requires writing to /tmp
+if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    DEFAULT_DB_PATH = Path("/tmp") / DB_FILE_NAME
+    SOURCE_DB = Path(__file__).resolve().parent / DB_FILE_NAME
+    if not DEFAULT_DB_PATH.exists() and SOURCE_DB.exists():
+        try:
+            shutil.copy2(SOURCE_DB, DEFAULT_DB_PATH)
+        except Exception:
+            pass
+else:
+    DEFAULT_DB_PATH = Path(__file__).resolve().parent / DB_FILE_NAME
 
 SCHEMA_SQL = """
 PRAGMA foreign_keys = ON;
